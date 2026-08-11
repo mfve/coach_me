@@ -17,7 +17,10 @@ export async function computeTrainingSnapshot() {
   const mileageWindowStart = new Date();
   mileageWindowStart.setDate(mileageWindowStart.getDate() - MILEAGE_WINDOW_DAYS);
 
-  const recentActivities = await prisma.activity.findMany({ where: { date: { gte: mileageWindowStart } } });
+  const recentActivities = await prisma.activity.findMany({
+    where: { date: { gte: mileageWindowStart } },
+    select: { distance: true },
+  });
 
   const totalVolumeKm = recentActivities.reduce((sum, a) => sum + (a.distance ?? 0), 0) / 1000;
   const currentWeeklyMileage = Math.round((totalVolumeKm / (MILEAGE_WINDOW_DAYS / 7)) * 10) / 10;
@@ -26,7 +29,10 @@ export async function computeTrainingSnapshot() {
   thresholdWindowStart.setDate(thresholdWindowStart.getDate() - THRESHOLD_LOOKBACK_DAYS);
 
   // Threshold pace specifically needs running efforts — a hike's pace isn't a running signal.
-  const thresholdActivities = await prisma.activity.findMany({ where: { date: { gte: thresholdWindowStart } } });
+  const thresholdActivities = await prisma.activity.findMany({
+    where: { date: { gte: thresholdWindowStart } },
+    select: { type: true, date: true, distance: true, duration: true, avgHr: true, avgPace: true },
+  });
   const runningActivities = thresholdActivities.filter((a) => a.type.toLowerCase().includes("run"));
 
   const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
@@ -66,7 +72,10 @@ export async function getRecentRunExamples(): Promise<RunExample[]> {
   const windowStart = new Date();
   windowStart.setDate(windowStart.getDate() - RUN_EXAMPLES_LOOKBACK_DAYS);
 
-  const activities = await prisma.activity.findMany({ where: { date: { gte: windowStart } } });
+  const activities = await prisma.activity.findMany({
+    where: { date: { gte: windowStart } },
+    select: { type: true, distance: true, duration: true, avgPace: true },
+  });
   const runs = activities.filter((a) => a.type.toLowerCase().includes("run") && a.distance && a.avgPace);
 
   const toExample = (a: (typeof runs)[number]): RunExample => ({

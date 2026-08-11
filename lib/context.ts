@@ -37,6 +37,7 @@ export async function buildUserContext() {
   const recentActivities = await prisma.activity.findMany({
     where: { date: { gte: daysAgo(28) } },
     orderBy: { date: "desc" },
+    select: { date: true, type: true, distance: true, duration: true, avgPace: true, avgHr: true, perceivedEffort: true, notes: true },
   });
 
   const latestMetrics = await prisma.dailyMetrics.findFirst({ orderBy: { date: "desc" } });

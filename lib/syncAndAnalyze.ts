@@ -188,6 +188,7 @@ async function matchActivitiesToPlannedWorkouts() {
 
   const unmatchedActivities = await prisma.activity.findMany({
     where: { plannedWorkout: null },
+    select: { id: true, type: true, date: true, distance: true },
   });
   if (unmatchedActivities.length === 0) return;
 
@@ -228,11 +229,16 @@ export async function adjustUpcomingPlan() {
   const recentActivities = await prisma.activity.findMany({
     where: { date: { gte: daysAgo(7) } },
     orderBy: { date: "asc" },
+    // This gets JSON.stringify'd straight into the Claude prompt below — selecting only the
+    // fields actually useful as context keeps the cached HR/pace streams (splits) and
+    // map polyline out of both the DB round trip and the token count.
+    select: { date: true, type: true, distance: true, duration: true, avgPace: true, avgHr: true, perceivedEffort: true, notes: true },
   });
 
   const loadWindowActivities = await prisma.activity.findMany({
     where: { date: { gte: daysAgo(42) } },
     orderBy: { date: "asc" },
+    select: { date: true, distance: true, duration: true, avgPace: true, perceivedEffort: true },
   });
 
   const upcomingPlanned = await prisma.plannedWorkout.findMany({

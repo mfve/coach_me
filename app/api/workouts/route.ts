@@ -29,12 +29,39 @@ export async function GET(req: Request) {
     lte: new Date(new Date(`${end}T23:59:59.999Z`).getTime() + 7 * 86_400_000),
   };
 
-  const [plannedWorkouts, activities, recentEfforts, weekFocuses] = await Promise.all([
+  // `splits` (Strava HR/time streams, cached lazily) and `mapPolyline` are never read outside
+  // the streams route and the map feature that got dropped — pulling them into every calendar
+  // load was serializing hundreds of KB of unused JSON per request. The visible-range query
+  // still needs `splits` for the client's interval-detection (classifyRunType reads
+  // `.splits.laps`), so it's stripped down to just `laps` below rather than dropped outright.
+  const ACTIVITY_LIST_FIELDS = {
+    id: true,
+    date: true,
+    type: true,
+    distance: true,
+    duration: true,
+    avgHr: true,
+    avgPace: true,
+    perceivedEffort: true,
+    notes: true,
+    source: true,
+    splits: true,
+  } as const;
+
+  const [plannedWorkouts, rawActivities, recentEfforts, weekFocuses] = await Promise.all([
     prisma.plannedWorkout.findMany({ where: { date: range }, orderBy: { date: "asc" } }),
-    prisma.activity.findMany({ where: { date: range }, orderBy: { date: "asc" } }),
-    prisma.activity.findMany({ where: { date: { gte: ninetyDaysAgo }, avgPace: { not: null } } }),
+    prisma.activity.findMany({ where: { date: range }, orderBy: { date: "asc" }, select: ACTIVITY_LIST_FIELDS }),
+    prisma.activity.findMany({
+      where: { date: { gte: ninetyDaysAgo }, avgPace: { not: null } },
+      select: { date: true, distance: true, duration: true },
+    }),
     prisma.weekFocus.findMany({ where: { weekStart: focusRange }, orderBy: { weekStart: "asc" } }),
   ]);
+
+  const activities = rawActivities.map((a) => ({
+    ...a,
+    splits: (a.splits as any)?.laps ? { laps: (a.splits as any).laps } : null,
+  }));
 
   // Reference pace for classifying completed runs as easy/tempo/long on the client —
   // widened to 90 days (vs. the 7-day window used for weekly-mileage snapshots) since a
