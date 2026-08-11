@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // pooled (PgBouncer), used at runtime
+  directUrl = env("DIRECT_URL") // unpooled, used only for migrations — see .env.local.example
+}
+
+enum WorkoutType {
+  EASY_RUN
+  TEMPO_RUN
+  INTERVALS
+  LONG_RUN
+  RACE
+  STRENGTH
+  HIIT
+  MTB
+  CYCLING
+  SWIM
+  MOBILITY
+  REST
+  OTHER
+}
+
+enum WorkoutSource {
+  USER
+  AI_GENERATED
+}
+
+model Activity {
+  id              String   @id @default(cuid())
+  stravaId        String?  @unique // null for manually logged activities
+  source          String   @default("manual") // "strava" | "garmin" | "manual"
+  date            DateTime
+  type            String // Strava/Garmin activity type, e.g. "Run", "Ride", "WeightTraining", "Hockey"
+  distance        Float? // meters — null for non-distance activities (gym, team sport, etc.)
+  duration        Int // seconds
+  avgHr           Int?
+  avgPace         Float? // seconds per km — only meaningful when distance is set
+  elevation       Float?
+  perceivedEffort Int? // self-reported RPE, 1-10 (Foster's session-RPE scale)
+  notes           String?  @db.Text // free text — what a distance/pace number can't capture (interval structure, drills, sets/reps)
+  mapPolyline     String?  @db.Text // Strava's encoded summary_polyline, from the activity list — already fetched during sync, no extra API call needed
+  splits          Json? // laps/interval data (Garmin) or fetched HR/pace streams (Strava, cached lazily — see /api/activities/[id]/streams)
+  createdAt       DateTime @default(now())
+
+  plannedWorkout PlannedWorkout? @relation("CompletedWorkout")
+}
+
+model PlannedWorkout {
+  id                  String        @id @default(cuid())
+  date                DateTime
+  type                WorkoutType
+  targetDistance      Float? // meters, optional — meaningful for run/ride/swim
+  targetDuration      Int? // minutes, optional
+  description         String        @db.Text // plain text: "4x400m @ 5K pace, 90s jog recovery"
+  goalId              String?
+  goal                Goal?         @relation(fields: [goalId], references: [id])
+  completedActivityId String?       @unique
+  completedActivity   Activity?     @relation("CompletedWorkout", fields: [completedActivityId], references: [id])
+  status              String        @default("planned") // planned, completed, missed
+  source              WorkoutSource @default(USER)
+  originalDate        DateTime? // set only if rescheduled, keeps history
+  adjustmentReason    String?       @db.Text // e.g. "Reduced from tempo to easy — 2 hard days back-to-back"
+  createdAt           DateTime      @default(now())
+}
+
+model WeekFocus {
+  weekStart DateTime @id // Monday of the week (00:00, local)
+  focus     String   @db.Text
+  goalId    String? // null for maintenance-plan weeks
+  updatedAt DateTime @updatedAt
+}
+
+model Goal {
+  id             String           @id @default(cuid())
+  title          String // e.g. "Sub-90 half marathon"
+  targetDate     DateTime?
+  targetMetric   Json // { type: "time", raceDistance: "half", targetSeconds: 5400 }
+  status         String           @default("active") // active, achieved, abandoned
+  createdAt      DateTime         @default(now())
+  plannedWorkouts PlannedWorkout[]
+}
+
+model DailyMetrics {
+  id          String   @id @default(cuid())
+  date        DateTime @unique
+  ctl         Float?
+  atl         Float?
+  tsb         Float?
+  acwr        Float?
+  monotony    Float?
+  strain      Float?
+  hrv         Float?
+  restingHr   Int?
+  sleepScore  Float?
+  bodyBattery Int?
+  createdAt   DateTime @default(now())
+}
+
+model Recommendation {
+  id        String   @id @default(cuid())
+  weekOf    DateTime
+  summary   String   @db.Text
+  metrics   Json // the computed ACWR/CTL/etc you fed the prompt
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  role      String // "user" | "assistant"
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model StravaAuth {
+  id           String   @id @default("singleton") // solo user for now; add userId when multi-user
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+}
+
+model UserProfile {
+  id                    String   @id @default("singleton")
+  experienceLevel       String? // "beginner" | "intermediate" | "advanced"
+  injuryHistory         String?  @db.Text
+  preferredTrainingDays Json? // { mon: true, tue: false, ... }
+  maxWeeklyHours        Float?
+  crossTrainingPrefs    Json? // ["strength", "mtb"]
+  notes                 String?  @db.Text
+  thresholdMethod       String   @default("riegel") // "riegel" | "hr"
+  maxHr                 Int?
+  restingHr             Int?
+  runsPerWeek           Int?
+  updatedAt             DateTime @updatedAt
+}
+
+model PendingReview {
+  id                   String   @id @default("singleton")
+  planAdjustment       Boolean  @default(false)
+  weeklyRecommendation Boolean  @default(false)
+  updatedAt            DateTime @updatedAt
+}
