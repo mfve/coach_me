@@ -60,7 +60,13 @@ function classifyRunType(activity, thresholdPaceSecPerKm) {
 
   const laps = activity.splits?.laps;
   if (Array.isArray(laps) && laps.length >= 3) {
-    const paces = laps.map((l) => l.paceSecPerKm).filter((p) => Number.isFinite(p) && p > 0);
+    // Auto-lap data always ends with a leftover partial-km fragment (e.g. 10m at the finish) —
+    // its pace is essentially noise and swings wildly, so it's excluded before computing variability.
+    const MIN_LAP_DISTANCE_METERS = 500;
+    const paces = laps
+      .filter((l) => !l.distanceMeters || l.distanceMeters >= MIN_LAP_DISTANCE_METERS)
+      .map((l) => l.paceSecPerKm)
+      .filter((p) => Number.isFinite(p) && p > 0);
     if (paces.length >= 3) {
       const mean = paces.reduce((a, b) => a + b, 0) / paces.length;
       const variance = paces.reduce((sum, p) => sum + (p - mean) ** 2, 0) / paces.length;
