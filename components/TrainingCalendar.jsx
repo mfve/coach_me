@@ -42,7 +42,13 @@ export function styleFor(type) {
 // between hard reps would otherwise average out to a misleadingly moderate pace.
 const LONG_RUN_DISTANCE_KM = 15;
 const LONG_RUN_DURATION_SEC = 90 * 60;
-const INTERVAL_PACE_CV_THRESHOLD = 0.12; // lap-to-lap pace variability above this reads as structured intervals, not pace drift
+// Auto-laps (per-km/mile splits from a watch) drift from hills, traffic lights, and fatigue on
+// a perfectly normal easy run — a plain CV check alone was flagging those as intervals. Real
+// interval sessions don't just vary, they oscillate: hard reps and easy recoveries repeatedly
+// swap sides of the mean. Requiring both a larger CV *and* at least two of those swings rules out
+// single-direction drift (one hill, one slow start) while still catching real structured work.
+const INTERVAL_PACE_CV_THRESHOLD = 0.18; // lap-to-lap pace variability above this reads as structured intervals, not pace drift
+const INTERVAL_MIN_ALTERNATIONS = 2; // min number of times laps swap between faster/slower than the mean
 const TEMPO_INTENSITY_THRESHOLD = 0.93; // avg pace within ~7% of estimated threshold pace reads as tempo/threshold effort
 
 function classifyRunType(activity, thresholdPaceSecPerKm) {
@@ -58,7 +64,17 @@ function classifyRunType(activity, thresholdPaceSecPerKm) {
     if (paces.length >= 3) {
       const mean = paces.reduce((a, b) => a + b, 0) / paces.length;
       const variance = paces.reduce((sum, p) => sum + (p - mean) ** 2, 0) / paces.length;
-      if (mean > 0 && Math.sqrt(variance) / mean > INTERVAL_PACE_CV_THRESHOLD) return "INTERVALS";
+      const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
+      if (cv > INTERVAL_PACE_CV_THRESHOLD) {
+        let alternations = 0;
+        let prevSide = null;
+        for (const p of paces) {
+          const side = p > mean ? 1 : -1;
+          if (prevSide !== null && side !== prevSide) alternations++;
+          prevSide = side;
+        }
+        if (alternations >= INTERVAL_MIN_ALTERNATIONS) return "INTERVALS";
+      }
     }
   }
 
