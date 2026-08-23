@@ -29,9 +29,29 @@ enum WorkoutSource {
   AI_GENERATED
 }
 
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  activities        Activity[]
+  plannedWorkouts   PlannedWorkout[]
+  weekFocuses       WeekFocus[]
+  goals             Goal[]
+  dailyMetrics      DailyMetrics[]
+  recommendations   Recommendation[]
+  chatMessages      ChatMessage[]
+  stravaAuth        StravaAuth?
+  profile           UserProfile?
+  pendingReview     PendingReview?
+}
+
 model Activity {
   id              String   @id @default(cuid())
-  stravaId        String?  @unique // null for manually logged activities
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  stravaId        String? // null for manually logged activities
   source          String   @default("manual") // "strava" | "garmin" | "manual"
   date            DateTime
   type            String // Strava/Garmin activity type, e.g. "Run", "Ride", "WeightTraining", "Hockey"
@@ -47,10 +67,14 @@ model Activity {
   createdAt       DateTime @default(now())
 
   plannedWorkout PlannedWorkout? @relation("CompletedWorkout")
+
+  @@unique([userId, stravaId])
 }
 
 model PlannedWorkout {
   id                  String        @id @default(cuid())
+  userId              String
+  user                User          @relation(fields: [userId], references: [id])
   date                DateTime
   type                WorkoutType
   targetDistance      Float? // meters, optional — meaningful for run/ride/swim
@@ -68,25 +92,34 @@ model PlannedWorkout {
 }
 
 model WeekFocus {
-  weekStart DateTime @id // Monday of the week (00:00, local)
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  weekStart DateTime // Monday of the week (00:00, local)
   focus     String   @db.Text
   goalId    String? // null for maintenance-plan weeks
   updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekStart])
 }
 
 model Goal {
-  id             String           @id @default(cuid())
-  title          String // e.g. "Sub-90 half marathon"
-  targetDate     DateTime?
-  targetMetric   Json // { type: "time", raceDistance: "half", targetSeconds: 5400 }
-  status         String           @default("active") // active, achieved, abandoned
-  createdAt      DateTime         @default(now())
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  title           String // e.g. "Sub-90 half marathon"
+  targetDate      DateTime?
+  targetMetric    Json // { type: "time", raceDistance: "half", targetSeconds: 5400 }
+  status          String           @default("active") // active, achieved, abandoned
+  createdAt       DateTime         @default(now())
   plannedWorkouts PlannedWorkout[]
 }
 
 model DailyMetrics {
   id          String   @id @default(cuid())
-  date        DateTime @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  date        DateTime
   ctl         Float?
   atl         Float?
   tsb         Float?
@@ -98,10 +131,14 @@ model DailyMetrics {
   sleepScore  Float?
   bodyBattery Int?
   createdAt   DateTime @default(now())
+
+  @@unique([userId, date])
 }
 
 model Recommendation {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   weekOf    DateTime
   summary   String   @db.Text
   metrics   Json // the computed ACWR/CTL/etc you fed the prompt
@@ -110,20 +147,26 @@ model Recommendation {
 
 model ChatMessage {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   role      String // "user" | "assistant"
   content   String   @db.Text
   createdAt DateTime @default(now())
 }
 
 model StravaAuth {
-  id           String   @id @default("singleton") // solo user for now; add userId when multi-user
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
   accessToken  String
   refreshToken String
   expiresAt    DateTime
 }
 
 model UserProfile {
-  id                    String   @id @default("singleton")
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
   experienceLevel       String? // "beginner" | "intermediate" | "advanced"
   injuryHistory         String?  @db.Text
   preferredTrainingDays Json? // { mon: true, tue: false, ... }
@@ -138,7 +181,9 @@ model UserProfile {
 }
 
 model PendingReview {
-  id                   String   @id @default("singleton")
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
   planAdjustment       Boolean  @default(false)
   weeklyRecommendation Boolean  @default(false)
   updatedAt            DateTime @updatedAt
