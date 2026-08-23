@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { apiFetchJson } from "@/lib/apiClient";
 import Spinner from "@/components/Spinner";
@@ -25,6 +26,7 @@ const DAYS = [
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +76,12 @@ export default function ProfilePage() {
 
   function toggleCrossTraining(option: string) {
     setCrossTrainingPrefs((prev) => (prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]));
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
   }
 
   async function save(e: React.FormEvent) {
@@ -330,6 +338,16 @@ export default function ProfilePage() {
             </button>
           </form>
         )}
+
+        <div className="pt-6 mt-6 border-t border-[#2E3236]">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="text-sm px-3 py-2 rounded-md border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32]"
+          >
+            Log out
+          </button>
+        </div>
       </div>
       <BottomNav active="profile" />
     </div>
