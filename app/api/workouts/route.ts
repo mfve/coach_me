@@ -1,15 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { clearPastPlannedWorkouts, runPendingReviewIfNeeded } from "@/lib/syncAndAnalyze";
 import { estimateThresholdPace } from "@/lib/threshold";
 
 export async function GET(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  await clearPastPlannedWorkouts();
-  const reviewErrors = await runPendingReviewIfNeeded();
+  await clearPastPlannedWorkouts(userId);
+  const reviewErrors = await runPendingReviewIfNeeded(userId);
 
   const { searchParams } = new URL(req.url);
   const start = searchParams.get("start");
@@ -49,13 +48,13 @@ export async function GET(req: Request) {
   } as const;
 
   const [plannedWorkouts, rawActivities, recentEfforts, weekFocuses] = await Promise.all([
-    prisma.plannedWorkout.findMany({ where: { date: range }, orderBy: { date: "asc" } }),
-    prisma.activity.findMany({ where: { date: range }, orderBy: { date: "asc" }, select: ACTIVITY_LIST_FIELDS }),
+    prisma.plannedWorkout.findMany({ where: { userId, date: range }, orderBy: { date: "asc" } }),
+    prisma.activity.findMany({ where: { userId, date: range }, orderBy: { date: "asc" }, select: ACTIVITY_LIST_FIELDS }),
     prisma.activity.findMany({
-      where: { date: { gte: ninetyDaysAgo }, avgPace: { not: null } },
+      where: { userId, date: { gte: ninetyDaysAgo }, avgPace: { not: null } },
       select: { date: true, distance: true, duration: true },
     }),
-    prisma.weekFocus.findMany({ where: { weekStart: focusRange }, orderBy: { weekStart: "asc" } }),
+    prisma.weekFocus.findMany({ where: { userId, weekStart: focusRange }, orderBy: { weekStart: "asc" } }),
   ]);
 
   const activities = rawActivities.map((a) => ({
@@ -74,9 +73,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
   const { date, type, description, targetDistance, targetDuration } = body ?? {};
@@ -87,6 +85,7 @@ export async function POST(req: Request) {
 
   const workout = await prisma.plannedWorkout.create({
     data: {
+      userId,
       date: new Date(date),
       type,
       description,

@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
   const status = body?.status;
@@ -12,6 +11,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (status !== "abandoned" && status !== "achieved") {
     return Response.json({ error: "status must be 'abandoned' or 'achieved'" }, { status: 400 });
   }
+
+  const existing = await prisma.goal.findUnique({ where: { id: params.id, userId } });
+  if (!existing) return Response.json({ error: "not found" }, { status: 404 });
 
   const goal = await prisma.goal.update({ where: { id: params.id }, data: { status } });
 
@@ -21,7 +23,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const { count } = await prisma.plannedWorkout.deleteMany({
-    where: { goalId: params.id, status: "planned", date: { gte: startOfToday } },
+    where: { userId, goalId: params.id, status: "planned", date: { gte: startOfToday } },
   });
 
   return Response.json({ ...goal, removedWorkouts: count });

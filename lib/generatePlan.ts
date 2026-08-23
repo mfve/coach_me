@@ -3,8 +3,8 @@ import { agentQuery, parseAgentJson } from "./agentClient";
 import { formatProfileForPrompt } from "./context";
 import type { RunExample } from "./trainingSnapshot";
 
-async function profileBlock(): Promise<string> {
-  const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+async function profileBlock(userId: string): Promise<string> {
+  const profile = await prisma.userProfile.findUnique({ where: { userId } });
   return formatProfileForPrompt(profile);
 }
 
@@ -102,16 +102,17 @@ function mondayOf(dateStr: string): Date {
   return d;
 }
 
-async function commitPlan(workouts: any[], goalId: string | null, weekFocuses: WeekFocus[] = []) {
+async function commitPlan(userId: string, workouts: any[], goalId: string | null, weekFocuses: WeekFocus[] = []) {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
   await prisma.plannedWorkout.deleteMany({
-    where: { source: "AI_GENERATED", status: "planned", date: { gte: startOfToday }, goalId },
+    where: { userId, source: "AI_GENERATED", status: "planned", date: { gte: startOfToday }, goalId },
   });
 
   await prisma.plannedWorkout.createMany({
     data: workouts.map((w: any) => ({
+      userId,
       date: new Date(w.date),
       type: w.type,
       targetDistance: w.targetDistance,
@@ -125,7 +126,7 @@ async function commitPlan(workouts: any[], goalId: string | null, weekFocuses: W
 
   // Replace this plan's week focuses. Deduped by Monday since the model occasionally emits a
   // weekStart on a non-Monday day.
-  await prisma.weekFocus.deleteMany({ where: { goalId, weekStart: { gte: startOfToday } } });
+  await prisma.weekFocus.deleteMany({ where: { userId, goalId, weekStart: { gte: startOfToday } } });
   const focusByWeek = new Map<number, { weekStart: Date; focus: string }>();
   for (const wf of weekFocuses) {
     if (!wf?.weekStart || !wf?.focus) continue;
@@ -134,7 +135,7 @@ async function commitPlan(workouts: any[], goalId: string | null, weekFocuses: W
   }
   if (focusByWeek.size > 0) {
     await prisma.weekFocus.createMany({
-      data: [...focusByWeek.values()].map((f) => ({ weekStart: f.weekStart, focus: f.focus, goalId })),
+      data: [...focusByWeek.values()].map((f) => ({ userId, weekStart: f.weekStart, focus: f.focus, goalId })),
       skipDuplicates: true,
     });
   }
@@ -156,12 +157,12 @@ function formatOtherGoals(otherActiveGoals: OtherGoalContext[]): string {
   );
 }
 
-export async function proposeInitialPlan(goal: GoalInput): Promise<ProposedPlan> {
+export async function proposeInitialPlan(userId: string, goal: GoalInput): Promise<ProposedPlan> {
   const prompt = `You are a running coach building a structured training plan for someone you
 coach. Talk to them directly, like a coach would, not like a plan-generation service.
 
 Runner profile — honour these preferences and constraints:
-${await profileBlock()}
+${await profileBlock(userId)}
 
 Goal: ${goal.title}
 Target date: ${goal.targetDate.toISOString().slice(0, 10)}
@@ -191,13 +192,13 @@ ${RESPONSE_SCHEMA}`;
   return requestPlan(prompt, "Plan generation");
 }
 
-export async function generateInitialPlan(goal: GoalInput) {
-  const { workouts, weekFocuses } = await proposeInitialPlan(goal);
-  await commitPlan(workouts, goal.id, weekFocuses);
+export async function generateInitialPlan(userId: string, goal: GoalInput) {
+  const { workouts, weekFocuses } = await proposeInitialPlan(userId, goal);
+  await commitPlan(userId, workouts, goal.id, weekFocuses);
   return workouts;
 }
 
-export async function proposeMaintenancePlan(input: MaintenanceInput): Promise<ProposedPlan> {
+export async function proposeMaintenancePlan(userId: string, input: MaintenanceInput): Promise<ProposedPlan> {
   const runsPerWeekNote = input.runsPerWeek
     ? `- Exactly ${input.runsPerWeek} running sessions per week.`
     : "- Choose a sensible number of running sessions per week based on the mileage and recent examples below.";
@@ -207,7 +208,7 @@ specific race or goal right now, just ongoing training. Talk to them directly, l
 would, not like a plan-generation service.
 
 Runner profile — honour these preferences and constraints:
-${await profileBlock()}
+${await profileBlock(userId)}
 
 Weeks to plan: ${input.weeksAhead}
 Current weekly mileage: ${input.currentWeeklyMileage}km
@@ -236,18 +237,19 @@ ${RESPONSE_SCHEMA}`;
   return requestPlan(prompt, "Maintenance plan generation");
 }
 
-export async function generateMaintenancePlan(input: MaintenanceInput) {
-  const { workouts, weekFocuses } = await proposeMaintenancePlan(input);
-  await commitPlan(workouts, null, weekFocuses);
+export async function generateMaintenancePlan(userId: string, input: MaintenanceInput) {
+  const { workouts, weekFocuses } = await proposeMaintenancePlan(userId, input);
+  await commitPlan(userId, workouts, null, weekFocuses);
   return workouts;
 }
 
 export async function commitProposedPlan(
+  userId: string,
   workouts: any[],
   goalId: string | null,
   weekFocuses: WeekFocus[] = []
 ) {
-  await commitPlan(workouts, goalId, weekFocuses);
+  await commitPlan(userId, workouts, goalId, weekFocuses);
   return workouts;
 }
 

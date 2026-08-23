@@ -39,11 +39,11 @@ export interface PlanActionResult {
   message: string;
 }
 
-export async function buildGoalPlanInput(goalId: string) {
-  const goal = await prisma.goal.findUnique({ where: { id: goalId } });
+export async function buildGoalPlanInput(userId: string, goalId: string) {
+  const goal = await prisma.goal.findUnique({ where: { id: goalId, userId } });
   if (!goal || !goal.targetDate) return null;
 
-  const otherActiveGoalRows = await prisma.goal.findMany({ where: { status: "active", id: { not: goal.id } } });
+  const otherActiveGoalRows = await prisma.goal.findMany({ where: { userId, status: "active", id: { not: goal.id } } });
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
@@ -53,14 +53,14 @@ export async function buildGoalPlanInput(goalId: string) {
       targetDate: g.targetDate,
       targetMetric: g.targetMetric,
       upcomingWorkouts: await prisma.plannedWorkout.findMany({
-        where: { goalId: g.id, date: { gte: startOfToday } },
+        where: { userId, goalId: g.id, date: { gte: startOfToday } },
         select: { date: true, type: true, description: true },
         orderBy: { date: "asc" },
       }),
     }))
   );
 
-  const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot();
+  const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot(userId);
   const weeksAvailable = Math.max(1, Math.ceil((goal.targetDate.getTime() - Date.now()) / (7 * 24 * 60 * 60 * 1000)));
 
   return {
@@ -76,10 +76,10 @@ export async function buildGoalPlanInput(goalId: string) {
   };
 }
 
-async function applyOne(action: PlanAction): Promise<PlanActionResult> {
+async function applyOne(userId: string, action: PlanAction): Promise<PlanActionResult> {
   switch (action.op) {
     case "update": {
-      const existing = await prisma.plannedWorkout.findUnique({ where: { id: action.workoutId } });
+      const existing = await prisma.plannedWorkout.findUnique({ where: { id: action.workoutId, userId } });
       if (!existing) return { action, ok: false, message: "Workout not found." };
       if (existing.status === "completed") return { action, ok: false, message: "Can't edit a completed workout." };
 
@@ -100,6 +100,7 @@ async function applyOne(action: PlanAction): Promise<PlanActionResult> {
     case "add": {
       await prisma.plannedWorkout.create({
         data: {
+          userId,
           date: new Date(action.date),
           type: action.type as any,
           targetDistance: action.targetDistance ?? null,
@@ -113,7 +114,7 @@ async function applyOne(action: PlanAction): Promise<PlanActionResult> {
     }
 
     case "remove": {
-      const existing = await prisma.plannedWorkout.findUnique({ where: { id: action.workoutId } });
+      const existing = await prisma.plannedWorkout.findUnique({ where: { id: action.workoutId, userId } });
       if (!existing) return { action, ok: false, message: "Workout not found." };
       if (existing.status === "completed") return { action, ok: false, message: "Can't remove a completed workout." };
 
@@ -126,13 +127,13 @@ async function applyOne(action: PlanAction): Promise<PlanActionResult> {
       // ever shown to the user — commit exactly what they saw and approved, don't re-roll.
       if (action.workouts && action.workouts.length > 0) {
         const goalId = action.scope === "goal" ? action.goalId ?? null : null;
-        await commitProposedPlan(action.workouts, goalId, action.weekFocuses ?? []);
+        await commitProposedPlan(userId, action.workouts, goalId, action.weekFocuses ?? []);
         return { action, ok: true, message: `Regenerated — ${action.workouts.length} workouts.` };
       }
 
       if (action.scope === "maintenance") {
-        const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot();
-        const workouts = await generateMaintenancePlan({
+        const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot(userId);
+        const workouts = await generateMaintenancePlan(userId, {
           weeksAhead: MAINTENANCE_WEEKS_AHEAD,
           currentWeeklyMileage,
           thresholdPace,
@@ -142,20 +143,20 @@ async function applyOne(action: PlanAction): Promise<PlanActionResult> {
       }
 
       if (!action.goalId) return { action, ok: false, message: "Missing goalId for goal regeneration." };
-      const goalInput = await buildGoalPlanInput(action.goalId);
+      const goalInput = await buildGoalPlanInput(userId, action.goalId);
       if (!goalInput) return { action, ok: false, message: "Goal not found or has no target date." };
 
-      const workouts = await generateInitialPlan(goalInput);
+      const workouts = await generateInitialPlan(userId, goalInput);
       return { action, ok: true, message: `Regenerated goal plan — ${workouts.length} workouts.` };
     }
   }
 }
 
-export async function applyPlanActions(actions: PlanAction[]): Promise<PlanActionResult[]> {
+export async function applyPlanActions(userId: string, actions: PlanAction[]): Promise<PlanActionResult[]> {
   const results: PlanActionResult[] = [];
   for (const action of actions) {
     try {
-      results.push(await applyOne(action));
+      results.push(await applyOne(userId, action));
     } catch (err) {
       results.push({ action, ok: false, message: (err as Error).message });
     }

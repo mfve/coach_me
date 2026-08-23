@@ -1,11 +1,10 @@
 import { syncAndAnalyze } from "@/lib/syncAndAnalyze";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 
-export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+export async function POST() {
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  const result = await syncAndAnalyze();
+  const result = await syncAndAnalyze(userId);
   return Response.json(result);
 }

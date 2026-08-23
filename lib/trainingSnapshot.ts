@@ -13,12 +13,12 @@ const MILEAGE_WINDOW_DAYS = 28;
 // much further than the mileage window rather than sharing it.
 const THRESHOLD_LOOKBACK_DAYS = 90;
 
-export async function computeTrainingSnapshot() {
+export async function computeTrainingSnapshot(userId: string) {
   const mileageWindowStart = new Date();
   mileageWindowStart.setDate(mileageWindowStart.getDate() - MILEAGE_WINDOW_DAYS);
 
   const recentActivities = await prisma.activity.findMany({
-    where: { date: { gte: mileageWindowStart } },
+    where: { userId, date: { gte: mileageWindowStart } },
     select: { distance: true },
   });
 
@@ -30,12 +30,12 @@ export async function computeTrainingSnapshot() {
 
   // Threshold pace specifically needs running efforts — a hike's pace isn't a running signal.
   const thresholdActivities = await prisma.activity.findMany({
-    where: { date: { gte: thresholdWindowStart } },
+    where: { userId, date: { gte: thresholdWindowStart } },
     select: { type: true, date: true, distance: true, duration: true, avgHr: true, avgPace: true },
   });
   const runningActivities = thresholdActivities.filter((a) => a.type.toLowerCase().includes("run"));
 
-  const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+  const profile = await prisma.userProfile.findUnique({ where: { userId } });
 
   let thresholdPace: number | null = null;
   if (profile?.thresholdMethod === "hr" && profile.maxHr && profile.restingHr) {
@@ -68,12 +68,12 @@ const MAX_RUN_EXAMPLES = 5;
 // examples of runs actually completed, it tends to guess conservatively small distances
 // even for someone who regularly runs much further at quality effort. Surfacing the longest
 // and fastest recent runs directly grounds the plan in demonstrated capability.
-export async function getRecentRunExamples(): Promise<RunExample[]> {
+export async function getRecentRunExamples(userId: string): Promise<RunExample[]> {
   const windowStart = new Date();
   windowStart.setDate(windowStart.getDate() - RUN_EXAMPLES_LOOKBACK_DAYS);
 
   const activities = await prisma.activity.findMany({
-    where: { date: { gte: windowStart } },
+    where: { userId, date: { gte: windowStart } },
     select: { type: true, distance: true, duration: true, avgPace: true },
   });
   const runs = activities.filter((a) => a.type.toLowerCase().includes("run") && a.distance && a.avgPace);

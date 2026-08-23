@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { agentQuery, parseAgentJson } from "@/lib/agentClient";
 import { buildUserContext, formatContextForPrompt } from "@/lib/context";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { buildGoalPlanInput, type PlanAction } from "@/lib/planActions";
 import { proposeMaintenancePlan, proposeInitialPlan, MAINTENANCE_WEEKS_AHEAD } from "@/lib/generatePlan";
 import { computeTrainingSnapshot } from "@/lib/trainingSnapshot";
@@ -46,15 +46,15 @@ function splitReplyAndActions(raw: string): { reply: string; proposedActions: Pl
 // actually show or approve against. Resolve it into a real proposed plan right away so the
 // client can render it as a preview card — approving then just commits what was already shown,
 // it never re-rolls the plan.
-async function resolveRegenerateActions(actions: PlanAction[]): Promise<PlanAction[]> {
+async function resolveRegenerateActions(userId: string, actions: PlanAction[]): Promise<PlanAction[]> {
   return Promise.all(
     actions.map(async (action) => {
       if (action.op !== "regenerate") return action;
 
       try {
         if (action.scope === "maintenance") {
-          const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot();
-          const { message, workouts, weekFocuses } = await proposeMaintenancePlan({
+          const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot(userId);
+          const { message, workouts, weekFocuses } = await proposeMaintenancePlan(userId, {
             weeksAhead: MAINTENANCE_WEEKS_AHEAD,
             currentWeeklyMileage,
             thresholdPace,
@@ -64,10 +64,10 @@ async function resolveRegenerateActions(actions: PlanAction[]): Promise<PlanActi
         }
 
         if (!action.goalId) return action;
-        const goalInput = await buildGoalPlanInput(action.goalId);
+        const goalInput = await buildGoalPlanInput(userId, action.goalId);
         if (!goalInput) return action;
 
-        const { message, workouts, weekFocuses } = await proposeInitialPlan(goalInput);
+        const { message, workouts, weekFocuses } = await proposeInitialPlan(userId, goalInput);
         return { ...action, workouts, weekFocuses, planMessage: message };
       } catch {
         // Leave the action unresolved (no workouts attached) — the client falls back to the
@@ -80,14 +80,14 @@ async function resolveRegenerateActions(actions: PlanAction[]): Promise<PlanActi
 
 const HISTORY_LIMIT = 20;
 
-export async function GET(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+export async function GET() {
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   // Newest-first from the DB so the limit keeps the most recent turns, then reversed back to
   // chronological order for display.
   const recent = await prisma.chatMessage.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: HISTORY_LIMIT,
   });
@@ -96,13 +96,13 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { message } = await req.json();
 
   const priorMessages = await prisma.chatMessage.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: HISTORY_LIMIT,
   });
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     .map((m) => `${m.role === "user" ? "User" : "Coach"}: ${m.content}`)
     .join("\n");
 
-  const context = await buildUserContext();
+  const context = await buildUserContext(userId);
   const prompt = `${formatContextForPrompt(context)}\n\n${
     history ? `Conversation so far:\n${history}\n\n` : ""
   }User: ${message}\n\n${PLAN_ACTIONS_INSTRUCTIONS}`;
@@ -127,12 +127,12 @@ export async function POST(req: Request) {
   }
 
   const { reply, proposedActions: rawActions } = splitReplyAndActions(rawReply);
-  const proposedActions = await resolveRegenerateActions(rawActions);
+  const proposedActions = await resolveRegenerateActions(userId, rawActions);
 
   await prisma.chatMessage.createMany({
     data: [
-      { role: "user", content: message },
-      { role: "assistant", content: reply },
+      { userId, role: "user", content: message },
+      { userId, role: "assistant", content: reply },
     ],
   });
 

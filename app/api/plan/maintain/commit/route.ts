@@ -1,10 +1,9 @@
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { commitProposedPlan } from "@/lib/generatePlan";
 
 export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const workouts = Array.isArray(body?.workouts) ? body.workouts : [];
@@ -13,6 +12,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "workouts array is required" }, { status: 400 });
   }
 
-  await commitProposedPlan(workouts, null, weekFocuses);
+  await commitProposedPlan(userId, workouts, null, weekFocuses);
   return Response.json({ workoutCount: workouts.length }, { status: 201 });
 }

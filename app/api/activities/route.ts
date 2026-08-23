@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { adjustUpcomingPlan } from "@/lib/syncAndAnalyze";
 
 export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
   const { date, type, distance, duration, avgHr, perceivedEffort, notes } = body ?? {};
@@ -22,6 +21,7 @@ export async function POST(req: Request) {
 
   const activity = await prisma.activity.create({
     data: {
+      userId,
       date: new Date(date),
       type,
       distance: distance ?? null,
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   let adjustmentError: string | null = null;
   try {
-    await adjustUpcomingPlan();
+    await adjustUpcomingPlan(userId);
   } catch (err) {
     adjustmentError = (err as Error).message;
   }

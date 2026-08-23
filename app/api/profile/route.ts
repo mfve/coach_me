@@ -1,24 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 
-export async function GET(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+export async function GET() {
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const profile = await prisma.userProfile.upsert({
-    where: { id: "singleton" },
+    where: { userId },
     update: {},
-    create: { id: "singleton" },
+    create: { userId },
   });
 
   return Response.json({ profile });
 }
 
 export async function PATCH(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const {
@@ -57,9 +55,9 @@ export async function PATCH(req: Request) {
   }
 
   const profile = await prisma.userProfile.upsert({
-    where: { id: "singleton" },
+    where: { userId },
     update,
-    create: { id: "singleton", thresholdMethod: thresholdMethod ?? "riegel", ...update },
+    create: { userId, thresholdMethod: thresholdMethod ?? "riegel", ...update },
   });
 
   return Response.json({ profile });

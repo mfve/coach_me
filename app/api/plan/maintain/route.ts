@@ -1,14 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { proposeMaintenancePlan, MAINTENANCE_WEEKS_AHEAD } from "@/lib/generatePlan";
 import { computeTrainingSnapshot, getRecentRunExamples } from "@/lib/trainingSnapshot";
 
 export async function POST(req: Request) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  const hasActiveGoal = await prisma.goal.findFirst({ where: { status: "active" } });
+  const hasActiveGoal = await prisma.goal.findFirst({ where: { userId, status: "active" } });
   if (hasActiveGoal) {
     return Response.json(
       { error: "An active goal already exists — generate a goal-based plan instead of a maintenance plan." },
@@ -17,12 +16,12 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot();
-  const recentRunExamples = await getRecentRunExamples();
-  const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+  const { currentWeeklyMileage, thresholdPace } = await computeTrainingSnapshot(userId);
+  const recentRunExamples = await getRecentRunExamples(userId);
+  const profile = await prisma.userProfile.findUnique({ where: { userId } });
 
   try {
-    const { message, workouts, weekFocuses } = await proposeMaintenancePlan({
+    const { message, workouts, weekFocuses } = await proposeMaintenancePlan(userId, {
       weeksAhead: MAINTENANCE_WEEKS_AHEAD,
       currentWeeklyMileage: body?.targetWeeklyMileage ?? currentWeeklyMileage,
       thresholdPace,

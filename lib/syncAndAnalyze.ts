@@ -6,8 +6,8 @@ import { refreshStravaToken, fetchStravaActivities as fetchFromStrava, StravaAct
 
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
-export async function getValidStravaToken(): Promise<{ accessToken: string }> {
-  const auth = await prisma.stravaAuth.findUnique({ where: { id: "singleton" } });
+export async function getValidStravaToken(userId: string): Promise<{ accessToken: string }> {
+  const auth = await prisma.stravaAuth.findUnique({ where: { userId } });
   if (!auth) {
     throw new Error("Strava not connected — visit /api/strava/connect first");
   }
@@ -18,7 +18,7 @@ export async function getValidStravaToken(): Promise<{ accessToken: string }> {
 
   const refreshed = await refreshStravaToken(auth.refreshToken);
   await prisma.stravaAuth.update({
-    where: { id: "singleton" },
+    where: { userId },
     data: {
       accessToken: refreshed.accessToken,
       refreshToken: refreshed.refreshToken,
@@ -37,12 +37,12 @@ async function fetchStravaActivities(accessToken: string): Promise<StravaActivit
 
 const BACKFILL_LOOKBACK_DAYS = 90;
 
-export async function backfillStravaActivities(): Promise<number> {
-  const auth = await getValidStravaToken();
+export async function backfillStravaActivities(userId: string): Promise<number> {
+  const auth = await getValidStravaToken(userId);
   const afterEpochSeconds = Math.floor(daysAgo(BACKFILL_LOOKBACK_DAYS).getTime() / 1000);
   const activities = await fetchFromStrava(auth.accessToken, afterEpochSeconds);
-  const newCount = await upsertActivities(activities);
-  await matchActivitiesToPlannedWorkouts();
+  const newCount = await upsertActivities(userId, activities);
+  await matchActivitiesToPlannedWorkouts(userId);
   return newCount;
 }
 
@@ -50,12 +50,12 @@ function toDateOnly(isoLocal: string): Date {
   return new Date(isoLocal.slice(0, 10));
 }
 
-async function upsertActivities(activities: StravaActivity[]): Promise<number> {
+async function upsertActivities(userId: string, activities: StravaActivity[]): Promise<number> {
   if (activities.length === 0) return 0;
 
   const stravaIds = activities.map((a) => String(a.id));
   const existing = await prisma.activity.findMany({
-    where: { stravaId: { in: stravaIds } },
+    where: { userId, stravaId: { in: stravaIds } },
     select: { stravaId: true },
   });
   const existingIds = new Set(existing.map((e) => e.stravaId));
@@ -80,9 +80,9 @@ async function upsertActivities(activities: StravaActivity[]): Promise<number> {
     };
 
     if (existingIds.has(stravaId)) {
-      await prisma.activity.update({ where: { stravaId }, data });
+      await prisma.activity.update({ where: { userId_stravaId: { userId, stravaId } }, data });
     } else {
-      await prisma.activity.create({ data: { ...data, stravaId } });
+      await prisma.activity.create({ data: { ...data, userId, stravaId } });
       newCount++;
     }
   }
@@ -90,9 +90,10 @@ async function upsertActivities(activities: StravaActivity[]): Promise<number> {
   return newCount;
 }
 
-export async function clearPastPlannedWorkouts(): Promise<number> {
+export async function clearPastPlannedWorkouts(userId: string): Promise<number> {
   const result = await prisma.plannedWorkout.deleteMany({
     where: {
+      userId,
       date: { lt: today() },
       status: "planned",
       completedActivityId: null,
@@ -101,22 +102,22 @@ export async function clearPastPlannedWorkouts(): Promise<number> {
   return result.count;
 }
 
-export async function syncAndAnalyze() {
+export async function syncAndAnalyze(userId: string) {
   let newCount = 0;
 
   try {
-    const auth = await getValidStravaToken();
+    const auth = await getValidStravaToken(userId);
     const activities = await fetchStravaActivities(auth.accessToken);
-    newCount = await upsertActivities(activities);
-    await matchActivitiesToPlannedWorkouts();
+    newCount = await upsertActivities(userId, activities);
+    await matchActivitiesToPlannedWorkouts(userId);
   } finally {
-    await clearPastPlannedWorkouts();
+    await clearPastPlannedWorkouts(userId);
   }
 
   if (newCount > 0) {
     await prisma.pendingReview.upsert({
-      where: { id: "singleton" },
-      create: { id: "singleton", planAdjustment: true },
+      where: { userId },
+      create: { userId, planAdjustment: true },
       update: { planAdjustment: true },
     });
   }
@@ -124,23 +125,23 @@ export async function syncAndAnalyze() {
   return { newCount };
 }
 
-export async function flagPendingWeeklyRecommendation() {
+export async function flagPendingWeeklyRecommendation(userId: string) {
   await prisma.pendingReview.upsert({
-    where: { id: "singleton" },
-    create: { id: "singleton", weeklyRecommendation: true },
+    where: { userId },
+    create: { userId, weeklyRecommendation: true },
     update: { weeklyRecommendation: true },
   });
 }
 
-export async function runPendingReviewIfNeeded(): Promise<string[]> {
-  const state = await prisma.pendingReview.findUnique({ where: { id: "singleton" } });
+export async function runPendingReviewIfNeeded(userId: string): Promise<string[]> {
+  const state = await prisma.pendingReview.findUnique({ where: { userId } });
   if (!state || (!state.planAdjustment && !state.weeklyRecommendation)) return [];
 
   const errors: string[] = [];
 
   if (state.planAdjustment) {
     try {
-      await adjustUpcomingPlan();
+      await adjustUpcomingPlan(userId);
     } catch (err) {
       errors.push(`adjustUpcomingPlan: ${(err as Error).message}`);
     }
@@ -155,7 +156,7 @@ export async function runPendingReviewIfNeeded(): Promise<string[]> {
   }
 
   await prisma.pendingReview.update({
-    where: { id: "singleton" },
+    where: { userId },
     data: { planAdjustment: false, weeklyRecommendation: false },
   });
 
@@ -180,14 +181,14 @@ function dateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function matchActivitiesToPlannedWorkouts() {
+async function matchActivitiesToPlannedWorkouts(userId: string) {
   const unmatchedPlanned = await prisma.plannedWorkout.findMany({
-    where: { status: "planned", completedActivityId: null },
+    where: { userId, status: "planned", completedActivityId: null },
   });
   if (unmatchedPlanned.length === 0) return;
 
   const unmatchedActivities = await prisma.activity.findMany({
-    where: { plannedWorkout: null },
+    where: { userId, plannedWorkout: null },
     select: { id: true, type: true, date: true, distance: true },
   });
   if (unmatchedActivities.length === 0) return;
@@ -225,9 +226,9 @@ async function matchActivitiesToPlannedWorkouts() {
 
 export async function maybeGenerateWeeklyRecommendation() {}
 
-export async function adjustUpcomingPlan() {
+export async function adjustUpcomingPlan(userId: string) {
   const recentActivities = await prisma.activity.findMany({
-    where: { date: { gte: daysAgo(7) } },
+    where: { userId, date: { gte: daysAgo(7) } },
     orderBy: { date: "asc" },
     // This gets JSON.stringify'd straight into the Claude prompt below — selecting only the
     // fields actually useful as context keeps the cached HR/pace streams (splits) and
@@ -236,13 +237,14 @@ export async function adjustUpcomingPlan() {
   });
 
   const loadWindowActivities = await prisma.activity.findMany({
-    where: { date: { gte: daysAgo(42) } },
+    where: { userId, date: { gte: daysAgo(42) } },
     orderBy: { date: "asc" },
     select: { date: true, distance: true, duration: true, avgPace: true, perceivedEffort: true },
   });
 
   const upcomingPlanned = await prisma.plannedWorkout.findMany({
     where: {
+      userId,
       date: { gte: today(), lte: daysFromNow(7) },
       status: "planned",
       source: "AI_GENERATED",
@@ -292,10 +294,10 @@ Otherwise return an empty array. Return JSON only, no other text.`,
   });
 
   const adjustments = parseJsonResponse(response);
-  await applyAdjustments(adjustments);
+  await applyAdjustments(userId, adjustments);
 }
 
-async function applyAdjustments(adjustments: any[]) {
+async function applyAdjustments(userId: string, adjustments: any[]) {
   for (const adj of adjustments) {
     if (adj.action === "keep") continue;
 
@@ -303,15 +305,15 @@ async function applyAdjustments(adjustments: any[]) {
       adjustmentReason: adj.reason,
     };
 
+    const current = await prisma.plannedWorkout.findUnique({
+      where: { id: adj.plannedWorkoutId, userId },
+      select: { date: true, originalDate: true },
+    });
+    if (!current) continue;
+
     if (adj.newDate) {
-      const current = await prisma.plannedWorkout.findUnique({
-        where: { id: adj.plannedWorkoutId },
-        select: { date: true, originalDate: true },
-      });
-      if (current) {
-        data.originalDate = current.originalDate ?? current.date;
-        data.date = new Date(adj.newDate);
-      }
+      data.originalDate = current.originalDate ?? current.date;
+      data.date = new Date(adj.newDate);
     }
 
     await prisma.plannedWorkout.update({

@@ -1,15 +1,14 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { isAuthorizedAppRequest } from "@/lib/auth";
+import { getSessionUserId } from "@/lib/auth";
 import { getValidStravaToken } from "@/lib/syncAndAnalyze";
 import { fetchStravaActivityStreams } from "@/lib/strava";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  if (!isAuthorizedAppRequest(req)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const userId = await getSessionUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  const activity = await prisma.activity.findUnique({ where: { id: params.id } });
+  const activity = await prisma.activity.findUnique({ where: { id: params.id, userId } });
   if (!activity) {
     return Response.json({ error: "not found" }, { status: 404 });
   }
@@ -22,7 +21,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 
   try {
-    const auth = await getValidStravaToken();
+    const auth = await getValidStravaToken(userId);
     const streams = await fetchStravaActivityStreams(auth.accessToken, activity.stravaId);
     await prisma.activity.update({
       where: { id: activity.id },

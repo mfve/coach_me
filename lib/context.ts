@@ -31,25 +31,26 @@ function summarizeActivities(activities: any[]) {
   }));
 }
 
-export async function buildUserContext() {
-  const profile = await prisma.userProfile.findUnique({ where: { id: "singleton" } });
+export async function buildUserContext(userId: string) {
+  const profile = await prisma.userProfile.findUnique({ where: { userId } });
 
   const recentActivities = await prisma.activity.findMany({
-    where: { date: { gte: daysAgo(28) } },
+    where: { userId, date: { gte: daysAgo(28) } },
     orderBy: { date: "desc" },
     select: { date: true, type: true, distance: true, duration: true, avgPace: true, avgHr: true, perceivedEffort: true, notes: true },
   });
 
-  const latestMetrics = await prisma.dailyMetrics.findFirst({ orderBy: { date: "desc" } });
+  const latestMetrics = await prisma.dailyMetrics.findFirst({ where: { userId }, orderBy: { date: "desc" } });
 
-  const activeGoals = await prisma.goal.findMany({ where: { status: "active" } });
+  const activeGoals = await prisma.goal.findMany({ where: { userId, status: "active" } });
 
   const upcomingWorkouts = await prisma.plannedWorkout.findMany({
-    where: { date: { gte: today(), lte: daysFromNow(10) } },
+    where: { userId, date: { gte: today(), lte: daysFromNow(10) } },
     orderBy: { date: "asc" },
   });
 
   const recentRecommendations = await prisma.recommendation.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: 2,
   });
