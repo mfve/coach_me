@@ -53,8 +53,7 @@ Everything in `lib/` and `app/api/` is written against the schema in `prisma/sch
 
 - `DATABASE_URL` / `DIRECT_URL` — see `.env.local.example`. Locally these can be the same connection string; on Supabase they must differ (pooled vs. direct — see below).
 - `CRON_SECRET` — Vercel Cron sends this automatically as `Authorization: Bearer <value>` once set; without it `/api/cron/*` routes reject all requests.
-- `APP_SECRET` — the dashboard client must send this as `Authorization: Bearer <value>` on `/api/sync`, `/api/chat`, `/api/workouts`, and `/api/activities`. See `lib/auth.ts`.
-- `NEXT_PUBLIC_APP_SECRET` — same value as `APP_SECRET`, exposed to the browser bundle so `lib/apiClient.ts` can attach it automatically. Not real auth once this app leaves your own machine — see the warning comment in that file.
+- `SESSION_SECRET` — signs the session cookie issued on login/signup. See `lib/auth.ts`; every page and `/api/*` route (except `/login`, `/signup`, `/api/auth/*`, and `/api/cron/*`) requires a valid session, enforced in `middleware.ts`.
 - `CLAUDE_CODE_OAUTH_TOKEN` — only needed when deploying; see below.
 
 ## Critical constraint to preserve
@@ -86,4 +85,5 @@ warning comment at the top of `lib/agentClient.ts`.
   (see `lib/auth.ts`). Enabling RLS wouldn't add protection here, and misconfiguring it (denying the
   role Prisma connects as) would break `prisma migrate deploy`. RLS only becomes relevant if this
   app starts querying Supabase directly from the browser with `@supabase/supabase-js` — it doesn't
-  today.
+  today. Access control instead happens in every `/api/*` route via the session cookie
+  (`middleware.ts`, `lib/auth.ts`) — each query is scoped to the signed-in user's own rows.

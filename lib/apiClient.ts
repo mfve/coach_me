@@ -1,5 +1,3 @@
-const APP_SECRET = process.env.NEXT_PUBLIC_APP_SECRET;
-
 // Chat/plan-generation calls can chain two Agent SDK calls back to back (reply + a resolved
 // "regenerate" proposal), which can run long — but with no timeout at all, a genuine hang looks
 // identical to "got no response" with nothing to show the user. 120s covers that chained case
@@ -8,7 +6,6 @@ const REQUEST_TIMEOUT_MS = 120_000;
 
 export async function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
-  if (APP_SECRET) headers.set("Authorization", `Bearer ${APP_SECRET}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
   const controller = new AbortController();
