@@ -21,6 +21,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#FAF7F2",
+  // Without this, iOS Safari auto-zooms in whenever a form input smaller than 16px gets focus —
+  // maximumScale locks that out so tapping a field feels like a native app, not a webpage.
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
