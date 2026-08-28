@@ -8,9 +8,11 @@ const SESSION_COOKIE_NAME = "session";
 const PUBLIC_PATHS = new Set([
   "/login",
   "/signup",
+  "/reset-password",
   "/api/auth/signup",
   "/api/auth/login",
   "/api/auth/logout",
+  "/api/admin/reset-password", // gated by its own ADMIN_SECRET check, not a session
   "/manifest.webmanifest",
   "/icon.svg",
   "/icon-192.png",
