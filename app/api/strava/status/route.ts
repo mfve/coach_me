@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  const auth = await prisma.stravaAuth.findUnique({ where: { userId } });
-  return Response.json({ connected: Boolean(auth) });
+  const stravaAuth = await prisma.stravaAuth.findUnique({ where: { userId } });
+  return Response.json({ connected: Boolean(stravaAuth) });
 }

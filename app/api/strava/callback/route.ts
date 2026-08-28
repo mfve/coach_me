@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { exchangeCodeForToken } from "@/lib/strava";
 import { backfillStravaActivities } from "@/lib/syncAndAnalyze";
 
@@ -12,7 +12,8 @@ export async function GET(req: Request) {
   const error = url.searchParams.get("error");
   const origin = url.origin;
 
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) {
     return Response.redirect(`${origin}/login`, 302);
   }

@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { clearPastPlannedWorkouts, runPendingReviewIfNeeded } from "@/lib/syncAndAnalyze";
 import { estimateThresholdPace } from "@/lib/threshold";
 
 export async function GET(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   await clearPastPlannedWorkouts(userId);
@@ -73,7 +74,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();

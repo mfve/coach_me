@@ -53,7 +53,7 @@ Everything in `lib/` and `app/api/` is written against the schema in `prisma/sch
 
 - `DATABASE_URL` / `DIRECT_URL` — see `.env.local.example`. Locally these can be the same connection string; on Supabase they must differ (pooled vs. direct — see below).
 - `CRON_SECRET` — Vercel Cron sends this automatically as `Authorization: Bearer <value>` once set; without it `/api/cron/*` routes reject all requests.
-- `SESSION_SECRET` — signs the session cookie issued on login/signup. See `lib/auth.ts`; every page and `/api/*` route (except `/login`, `/signup`, `/api/auth/*`, and `/api/cron/*`) requires a valid session, enforced in `middleware.ts`.
+- `AUTH_SECRET` — signs Auth.js (NextAuth v5) session cookies/JWTs, see `auth.ts`/`auth.config.ts`. Every page and `/api/*` route (except `/login`, `/signup`, `/api/auth/*`, and `/api/cron/*`) requires a valid session, enforced in `middleware.ts`.
 - `CLAUDE_CODE_OAUTH_TOKEN` — only needed when deploying; see below.
 
 ## Critical constraint to preserve

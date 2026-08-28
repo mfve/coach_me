@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { generateInitialPlan } from "@/lib/generatePlan";
 import { computeTrainingSnapshot } from "@/lib/trainingSnapshot";
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const goals = await prisma.goal.findMany({ where: { userId }, orderBy: { createdAt: "desc" } });
@@ -12,7 +13,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();

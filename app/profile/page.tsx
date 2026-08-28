@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Check } from "lucide-react";
 import { apiFetchJson } from "@/lib/apiClient";
 import Spinner from "@/components/Spinner";
@@ -79,7 +80,7 @@ export default function ProfilePage() {
   }
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await signOut({ redirect: false });
     router.push("/login");
     router.refresh();
   }

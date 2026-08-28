@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { proposeMaintenancePlan, MAINTENANCE_WEEKS_AHEAD } from "@/lib/generatePlan";
 import { computeTrainingSnapshot, getRecentRunExamples } from "@/lib/trainingSnapshot";
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const hasActiveGoal = await prisma.goal.findFirst({ where: { userId, status: "active" } });

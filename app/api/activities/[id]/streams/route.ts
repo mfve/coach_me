@@ -1,11 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { getValidStravaToken } from "@/lib/syncAndAnalyze";
 import { fetchStravaActivityStreams } from "@/lib/strava";
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const activity = await prisma.activity.findUnique({ where: { id: params.id, userId } });

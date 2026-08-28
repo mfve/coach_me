@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 
 const STATE_COOKIE_NAME = "strava_oauth_state";
 
 export async function GET(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const clientId = process.env.STRAVA_CLIENT_ID;

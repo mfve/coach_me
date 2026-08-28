@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { agentQuery, parseAgentJson } from "@/lib/agentClient";
 import { buildUserContext, formatContextForPrompt } from "@/lib/context";
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { buildGoalPlanInput, type PlanAction } from "@/lib/planActions";
 import { proposeMaintenancePlan, proposeInitialPlan, MAINTENANCE_WEEKS_AHEAD } from "@/lib/generatePlan";
 import { computeTrainingSnapshot } from "@/lib/trainingSnapshot";
@@ -81,7 +81,8 @@ async function resolveRegenerateActions(userId: string, actions: PlanAction[]): 
 const HISTORY_LIMIT = 20;
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   // Newest-first from the DB so the limit keeps the most recent turns, then reversed back to
@@ -96,7 +97,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const { message } = await req.json();

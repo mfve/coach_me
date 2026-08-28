@@ -1,8 +1,9 @@
-import { getSessionUserId } from "@/lib/auth";
+import { auth } from "@/auth";
 import { applyPlanActions, type PlanAction } from "@/lib/planActions";
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
+  const session = await auth();
+  const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json().catch(() => ({}));
