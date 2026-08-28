@@ -49,8 +49,8 @@ model User {
 
 model Activity {
   id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
   stravaId        String? // null for manually logged activities
   source          String   @default("manual") // "strava" | "garmin" | "manual"
   date            DateTime
@@ -73,8 +73,8 @@ model Activity {
 
 model PlannedWorkout {
   id                  String        @id @default(cuid())
-  userId              String
-  user                User          @relation(fields: [userId], references: [id])
+  userId              String?
+  user                User?         @relation(fields: [userId], references: [id])
   date                DateTime
   type                WorkoutType
   targetDistance      Float? // meters, optional — meaningful for run/ride/swim
@@ -93,8 +93,8 @@ model PlannedWorkout {
 
 model WeekFocus {
   id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   weekStart DateTime // Monday of the week (00:00, local)
   focus     String   @db.Text
   goalId    String? // null for maintenance-plan weeks
@@ -105,8 +105,8 @@ model WeekFocus {
 
 model Goal {
   id              String           @id @default(cuid())
-  userId          String
-  user            User             @relation(fields: [userId], references: [id])
+  userId          String?
+  user            User?            @relation(fields: [userId], references: [id])
   title           String // e.g. "Sub-90 half marathon"
   targetDate      DateTime?
   targetMetric    Json // { type: "time", raceDistance: "half", targetSeconds: 5400 }
@@ -117,8 +117,8 @@ model Goal {
 
 model DailyMetrics {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
   date        DateTime
   ctl         Float?
   atl         Float?
@@ -137,8 +137,8 @@ model DailyMetrics {
 
 model Recommendation {
   id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   weekOf    DateTime
   summary   String   @db.Text
   metrics   Json // the computed ACWR/CTL/etc you fed the prompt
@@ -147,8 +147,8 @@ model Recommendation {
 
 model ChatMessage {
   id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   role      String // "user" | "assistant"
   content   String   @db.Text
   createdAt DateTime @default(now())
@@ -156,8 +156,8 @@ model ChatMessage {
 
 model StravaAuth {
   id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id])
   accessToken  String
   refreshToken String
   expiresAt    DateTime
@@ -165,8 +165,8 @@ model StravaAuth {
 
 model UserProfile {
   id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id])
+  userId                String?  @unique
+  user                  User?    @relation(fields: [userId], references: [id])
   experienceLevel       String? // "beginner" | "intermediate" | "advanced"
   injuryHistory         String?  @db.Text
   preferredTrainingDays Json? // { mon: true, tue: false, ... }
@@ -182,8 +182,8 @@ model UserProfile {
 
 model PendingReview {
   id                   String   @id @default(cuid())
-  userId               String   @unique
-  user                 User     @relation(fields: [userId], references: [id])
+  userId               String?  @unique
+  user                 User?    @relation(fields: [userId], references: [id])
   planAdjustment       Boolean  @default(false)
   weeklyRecommendation Boolean  @default(false)
   updatedAt            DateTime @updatedAt
