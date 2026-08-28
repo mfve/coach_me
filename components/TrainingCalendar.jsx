@@ -461,55 +461,41 @@ export default function TrainingCalendar() {
                     return (
                       <div
                         key={i}
-                        className={`min-h-[78px] flex flex-col border-t border-r border-[#26292D] transition-colors ${
+                        onClick={() => setSelectedDateKey((prev) => (prev === key ? null : key))}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedDateKey((prev) => (prev === key ? null : key));
+                          }
+                        }}
+                        className={`min-h-[78px] p-1.5 flex flex-col gap-1 overflow-hidden border-t border-r border-[#26292D] cursor-pointer transition-colors ${
                           isSelected ? "bg-[#1D2422] ring-1 ring-inset ring-[#7DD3C0]" : isToday ? "bg-[#1D2422]" : "bg-[#1B1D1F]"
                         }`}
                       >
-                        <div
-                          onClick={() => setSelectedDateKey((prev) => (prev === key ? null : key))}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setSelectedDateKey((prev) => (prev === key ? null : key));
-                            }
-                          }}
-                          className="flex-1 p-1.5 flex flex-col gap-1 overflow-hidden cursor-pointer"
-                        >
-                          <span className={`text-xs ${isToday ? "text-[#7DD3C0] font-semibold" : "text-[#6B7280]"}`}>
-                            {date.getDate()}
-                          </span>
-                          <div className="flex flex-col gap-1 overflow-hidden">
-                            {dayItems.slice(0, 2).map((w) => (
-                              <div
-                                key={w.id}
-                                className="text-left rounded px-1.5 py-1 text-[10px] leading-tight truncate"
-                                style={{
-                                  backgroundColor: `${styleFor(w.type).color}22`,
-                                  borderLeft: `2px solid ${styleFor(w.type).color}`,
-                                  borderStyle: w.source === "AI_GENERATED" ? "dashed" : "solid",
-                                  borderLeftWidth: "3px",
-                                }}
-                              >
-                                <span className="text-[#EDEAE3] font-medium">{styleFor(w.type).label}</span>
-                              </div>
-                            ))}
-                            {dayItems.length > 2 && (
-                              <span className="text-[9px] text-[#6B7280] px-1.5">+{dayItems.length - 2} more</span>
-                            )}
-                          </div>
+                        <span className={`text-xs ${isToday ? "text-[#7DD3C0] font-semibold" : "text-[#6B7280]"}`}>
+                          {date.getDate()}
+                        </span>
+                        <div className="flex flex-col gap-1 overflow-hidden">
+                          {dayItems.slice(0, 2).map((w) => (
+                            <div
+                              key={w.id}
+                              className="text-left rounded px-1.5 py-1 text-[10px] leading-tight truncate"
+                              style={{
+                                backgroundColor: `${styleFor(w.type).color}22`,
+                                borderLeft: `2px solid ${styleFor(w.type).color}`,
+                                borderStyle: w.source === "AI_GENERATED" ? "dashed" : "solid",
+                                borderLeftWidth: "3px",
+                              }}
+                            >
+                              <span className="text-[#EDEAE3] font-medium">{styleFor(w.type).label}</span>
+                            </div>
+                          ))}
+                          {dayItems.length > 2 && (
+                            <span className="text-[9px] text-[#6B7280] px-1.5">+{dayItems.length - 2} more</span>
+                          )}
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openQuickAdd(key);
-                          }}
-                          aria-label={key <= todayKey ? `Log a workout on ${key}` : `Plan a workout on ${key}`}
-                          className="w-full py-2 flex items-center justify-center text-[#6B7280] border-t border-[#26292D] hover:bg-[#2A2E32] hover:text-[#EDEAE3] active:scale-95 transition-all"
-                        >
-                          <Plus size={16} strokeWidth={2.5} />
-                        </button>
                       </div>
                     );
                   })}
@@ -518,6 +504,16 @@ export default function TrainingCalendar() {
             })}
           </div>
         </div>
+
+        <button
+          onClick={() => openQuickAdd(selectedDateKey ?? todayKey)}
+          className="w-full mt-3 py-2.5 flex items-center justify-center gap-1.5 text-sm rounded-md border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] hover:text-[#EDEAE3] active:scale-[0.99] transition-all"
+        >
+          <Plus size={15} strokeWidth={2.5} />
+          {selectedDateKey
+            ? `Add to ${new Date(`${selectedDateKey}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+            : "Add workout"}
+        </button>
 
         {/* Selected day detail — inline, no popup */}
         {selectedDateKey && (
