@@ -11,22 +11,22 @@ import BottomNav from "@/components/BottomNav";
 // Background: graphite track surface. Accent: lane colors per workout type.
 // AI-generated workouts get a dashed left rail; user-added get a solid one.
 export const TYPE_STYLES = {
-  EASY_RUN:   { label: "Easy run",   color: "#7DD3C0" },
-  TEMPO_RUN:  { label: "Tempo",      color: "#F2A65A" },
-  INTERVALS:  { label: "Intervals",  color: "#E8574B" },
-  LONG_RUN:   { label: "Long run",   color: "#5B9BD5" },
-  RACE:       { label: "Race",       color: "#F2D95C" },
-  STRENGTH:   { label: "Strength",   color: "#B98CE0" },
-  HIIT:       { label: "HIIT",       color: "#E8574B" },
-  MTB:        { label: "MTB",        color: "#6FCF97" },
-  CYCLING:    { label: "Cycling",    color: "#6FCF97" },
-  SWIM:       { label: "Swim",       color: "#5BC0DE" },
-  MOBILITY:   { label: "Mobility",   color: "#9AA5B1" },
-  REST:       { label: "Rest",       color: "#4A5058" },
-  OTHER:      { label: "Other",      color: "#9AA5B1" },
+  EASY_RUN:   { label: "Easy run",   color: "#2E9C86" },
+  TEMPO_RUN:  { label: "Tempo",      color: "#D98A3D" },
+  INTERVALS:  { label: "Intervals",  color: "#D14F3F" },
+  LONG_RUN:   { label: "Long run",   color: "#3E7FBD" },
+  RACE:       { label: "Race",       color: "#C99A1E" },
+  STRENGTH:   { label: "Strength",   color: "#9A5FD1" },
+  HIIT:       { label: "HIIT",       color: "#D14F3F" },
+  MTB:        { label: "MTB",        color: "#3F9E68" },
+  CYCLING:    { label: "Cycling",    color: "#3F9E68" },
+  SWIM:       { label: "Swim",       color: "#2A9DBF" },
+  MOBILITY:   { label: "Mobility",   color: "#6B6357" },
+  REST:       { label: "Rest",       color: "#B4AC9C" },
+  OTHER:      { label: "Other",      color: "#6B6357" },
   // Pseudo-type for completed Activity rows (Strava/Garmin ingestion) that
   // haven't been matched to a PlannedWorkout yet — see matchActivitiesToPlannedWorkouts().
-  ACTIVITY:   { label: "Completed",  color: "#4ADE80" },
+  ACTIVITY:   { label: "Completed",  color: "#1E9E52" },
 };
 
 const WORKOUT_TYPES = Object.keys(TYPE_STYLES).filter((t) => t !== "ACTIVITY");
@@ -328,23 +328,23 @@ export default function TrainingCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-[#16181A] text-[#EDEAE3] font-[system-ui]">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2B261F] font-[system-ui]">
       <div className="max-w-4xl mx-auto px-4 pt-8 pb-28">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280] mb-1">Training plan</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#A39C8C] mb-1">Training plan</p>
             <h1 className="text-2xl font-semibold tracking-tight">{formatMonth(cursor)}</h1>
           </div>
           <div className="flex items-center gap-2">
             {stravaConnected ? (
-              <span className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-transparent border border-[#3A3F45] text-[#7DD3C0]">
+              <span className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-transparent border border-[#D9D2C4] text-[#2E9C86]">
                 <CheckCircle2 size={14} /> Strava connected
               </span>
             ) : (
               <a
                 href="/api/strava/connect"
-                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors"
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors"
               >
                 <Link2 size={14} /> Connect Strava
               </a>
@@ -352,21 +352,21 @@ export default function TrainingCalendar() {
             <button
               onClick={runSync}
               disabled={syncing}
-              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors disabled:opacity-50"
             >
               <RefreshCw size={14} className={syncing ? "animate-spin" : ""} /> Sync now
             </button>
             <div className="flex items-center gap-1 ml-1">
               <button
                 onClick={() => shiftMonth(-1)}
-                className="p-2 rounded-md hover:bg-[#232628] transition-colors"
+                className="p-2 rounded-xl hover:bg-[#F3EFE7] transition-colors"
                 aria-label="Previous month"
               >
                 <ChevronLeft size={18} />
               </button>
               <button
                 onClick={() => shiftMonth(1)}
-                className="p-2 rounded-md hover:bg-[#232628] transition-colors"
+                className="p-2 rounded-xl hover:bg-[#F3EFE7] transition-colors"
                 aria-label="Next month"
               >
                 <ChevronRight size={18} />
@@ -376,13 +376,13 @@ export default function TrainingCalendar() {
         </div>
 
         {syncMessage && (
-          <p className="mb-4 text-xs text-[#9AA5B1] bg-[#232628] border border-[#3A3F45] rounded-lg px-4 py-3">
+          <p className="mb-4 text-xs text-[#6B6357] bg-[#F3EFE7] border border-[#D9D2C4] rounded-2xl px-4 py-3">
             {syncMessage}
           </p>
         )}
 
         {loadError && (
-          <p className="mb-4 text-xs text-[#E8574B] border border-[#E8574B]/40 rounded-lg px-4 py-3 bg-[#E8574B]/10">
+          <p className="mb-4 text-xs text-[#D14F3F] border border-[#D14F3F]/40 rounded-2xl px-4 py-3 bg-[#D14F3F]/10">
             Couldn't load workouts: {loadError}
           </p>
         )}
@@ -393,26 +393,26 @@ export default function TrainingCalendar() {
             {pendingAdjustments.map((w) => (
               <div
                 key={w.id}
-                className="flex items-start gap-3 bg-[#232628] border border-[#3A3F45] rounded-lg px-4 py-3"
+                className="flex items-start gap-3 bg-[#F3EFE7] border border-[#D9D2C4] rounded-2xl px-4 py-3"
               >
-                <AlertCircle size={18} className="text-[#F2A65A] mt-0.5 shrink-0" />
+                <AlertCircle size={18} className="text-[#D98A3D] mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#EDEAE3]">
+                  <p className="text-sm text-[#2B261F]">
                     <span className="font-medium">{styleFor(w.type).label}</span> on{" "}
                     {new Date(w.date).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
                   </p>
-                  <p className="text-xs text-[#9AA5B1] mt-0.5">{w.adjustmentReason}</p>
+                  <p className="text-xs text-[#6B6357] mt-0.5">{w.adjustmentReason}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => resolveAdjustment(w.rawId, true)}
-                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium hover:opacity-90 transition-opacity"
                   >
                     <Check size={13} /> Accept
                   </button>
                   <button
                     onClick={() => resolveAdjustment(w.rawId, false)}
-                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors"
+                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors"
                   >
                     <X size={13} /> Dismiss
                   </button>
@@ -425,7 +425,7 @@ export default function TrainingCalendar() {
         {/* Weekday labels */}
         <div className="grid grid-cols-7 mb-1">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <div key={i} className="text-center text-xs text-[#6B7280] py-2 uppercase tracking-wide">
+            <div key={i} className="text-center text-xs text-[#A39C8C] py-2 uppercase tracking-wide">
               {d}
             </div>
           ))}
@@ -433,7 +433,7 @@ export default function TrainingCalendar() {
 
         {/* Month grid — one continuous grid (not per-week grids) so borders form a single flush
             hairline sheet like a normal calendar, instead of floating cards with gaps. */}
-        <div className={`border border-[#26292D] rounded-lg overflow-hidden ${loading ? "opacity-50" : ""}`}>
+        <div className={`border border-[#EAE4D9] rounded-2xl overflow-hidden ${loading ? "opacity-50" : ""}`}>
           <div className="grid grid-cols-7">
             {weeks.map((week, wi) => {
               const firstDate = week.find((d) => d);
@@ -442,8 +442,8 @@ export default function TrainingCalendar() {
                 <Fragment key={wi}>
                   {focus && (
                     <div
-                      className={`col-span-7 text-[10px] text-[#7DD3C0] font-medium tracking-wide px-2 py-1 bg-[#1D2422] truncate ${
-                        wi > 0 ? "border-t border-[#26292D]" : ""
+                      className={`col-span-7 text-[10px] text-[#2E9C86] font-medium tracking-wide px-2 py-1 bg-[#E3F5F0] truncate ${
+                        wi > 0 ? "border-t border-[#EAE4D9]" : ""
                       }`}
                     >
                       {focus}
@@ -451,7 +451,7 @@ export default function TrainingCalendar() {
                   )}
                   {week.map((date, i) => {
                     if (!date) {
-                      return <div key={i} className="min-h-[78px] border-t border-r border-[#26292D] bg-[#16181A]" />;
+                      return <div key={i} className="min-h-[78px] border-t border-r border-[#EAE4D9] bg-[#FAF7F2]" />;
                     }
                     const key = toKey(date);
                     const dayItems = itemsByDate[key] || [];
@@ -470,11 +470,11 @@ export default function TrainingCalendar() {
                             setSelectedDateKey((prev) => (prev === key ? null : key));
                           }
                         }}
-                        className={`min-h-[78px] p-1.5 flex flex-col gap-1 overflow-hidden border-t border-r border-[#26292D] cursor-pointer transition-colors ${
-                          isSelected ? "bg-[#1D2422] ring-1 ring-inset ring-[#7DD3C0]" : isToday ? "bg-[#1D2422]" : "bg-[#1B1D1F]"
+                        className={`min-h-[78px] p-1.5 flex flex-col gap-1 overflow-hidden border-t border-r border-[#EAE4D9] cursor-pointer transition-colors ${
+                          isSelected ? "bg-[#E3F5F0] ring-1 ring-inset ring-[#2E9C86]" : isToday ? "bg-[#E3F5F0]" : "bg-[#FFFFFF]"
                         }`}
                       >
-                        <span className={`text-xs ${isToday ? "text-[#7DD3C0] font-semibold" : "text-[#6B7280]"}`}>
+                        <span className={`text-xs ${isToday ? "text-[#2E9C86] font-semibold" : "text-[#A39C8C]"}`}>
                           {date.getDate()}
                         </span>
                         <div className="flex flex-col gap-1 overflow-hidden">
@@ -489,11 +489,11 @@ export default function TrainingCalendar() {
                                 borderLeftWidth: "3px",
                               }}
                             >
-                              <span className="text-[#EDEAE3] font-medium">{styleFor(w.type).label}</span>
+                              <span className="text-[#2B261F] font-medium">{styleFor(w.type).label}</span>
                             </div>
                           ))}
                           {dayItems.length > 2 && (
-                            <span className="text-[9px] text-[#6B7280] px-1.5">+{dayItems.length - 2} more</span>
+                            <span className="text-[9px] text-[#A39C8C] px-1.5">+{dayItems.length - 2} more</span>
                           )}
                         </div>
                       </div>
@@ -507,7 +507,7 @@ export default function TrainingCalendar() {
 
         <button
           onClick={() => openQuickAdd(selectedDateKey ?? todayKey)}
-          className="w-full mt-3 py-2.5 flex items-center justify-center gap-1.5 text-sm rounded-md border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] hover:text-[#EDEAE3] active:scale-[0.99] transition-all"
+          className="w-full mt-3 py-2.5 flex items-center justify-center gap-1.5 text-sm rounded-xl border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] hover:text-[#2B261F] active:scale-[0.99] transition-all"
         >
           <Plus size={15} strokeWidth={2.5} />
           {selectedDateKey
@@ -517,9 +517,9 @@ export default function TrainingCalendar() {
 
         {/* Selected day detail — inline, no popup */}
         {selectedDateKey && (
-          <div className="mt-4 bg-[#1F2225] border border-[#2E3236] rounded-lg p-4">
+          <div className="mt-4 bg-[#FFFFFF] border border-[#E2DCD0] rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-[#EDEAE3]">
+              <p className="text-sm font-semibold text-[#2B261F]">
                 {new Date(`${selectedDateKey}T00:00:00`).toLocaleDateString("en-US", {
                   weekday: "long",
                   month: "long",
@@ -529,26 +529,26 @@ export default function TrainingCalendar() {
               <button
                 onClick={() => setSelectedDateKey(null)}
                 aria-label="Close"
-                className="text-[#6B7280] hover:text-[#EDEAE3] transition-colors p-1"
+                className="text-[#A39C8C] hover:text-[#2B261F] transition-colors p-1"
               >
                 <X size={16} />
               </button>
             </div>
 
             {(itemsByDate[selectedDateKey] || []).length === 0 ? (
-              <p className="text-xs text-[#6B7280]">Nothing planned or logged for this day.</p>
+              <p className="text-xs text-[#A39C8C]">Nothing planned or logged for this day.</p>
             ) : (
               <div className="space-y-2">
                 {(itemsByDate[selectedDateKey] || []).map((w) => (
-                  <div key={w.id} className="flex items-start gap-2.5 rounded-md px-3 py-2.5 bg-[#232628]">
+                  <div key={w.id} className="flex items-start gap-2.5 rounded-xl px-3 py-2.5 bg-[#F3EFE7]">
                     <span
                       className="w-2 h-2 rounded-full mt-1.5 shrink-0"
                       style={{ backgroundColor: styleFor(w.type).color }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-[#EDEAE3]">{styleFor(w.type).label}</span>
-                        <span className="text-[10px] text-[#6B7280] flex items-center gap-1 ml-auto shrink-0">
+                        <span className="text-xs font-medium text-[#2B261F]">{styleFor(w.type).label}</span>
+                        <span className="text-[10px] text-[#A39C8C] flex items-center gap-1 ml-auto shrink-0">
                           {w.source === "AI_GENERATED" ? (
                             <Sparkles size={10} />
                           ) : w.source === "ACTIVITY" ? (
@@ -559,7 +559,7 @@ export default function TrainingCalendar() {
                           {w.source === "AI_GENERATED" ? "AI-generated" : w.source === "ACTIVITY" ? "Completed" : "Your plan"}
                         </span>
                       </div>
-                      <p className="text-sm text-[#EDEAE3] mt-1 whitespace-pre-wrap">{w.description}</p>
+                      <p className="text-sm text-[#2B261F] mt-1 whitespace-pre-wrap">{w.description}</p>
                       {w.isStrava && <StravaActivityExtras activityId={w.rawId} />}
                     </div>
                   </div>
@@ -570,13 +570,13 @@ export default function TrainingCalendar() {
         )}
 
         {/* Legend */}
-        <div className="flex items-center gap-5 mt-6 text-xs text-[#6B7280]">
+        <div className="flex items-center gap-5 mt-6 text-xs text-[#A39C8C]">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-[2px] bg-[#9AA5B1]" style={{ borderTop: "2px solid #9AA5B1" }} />
+            <span className="w-3 h-[2px] bg-[#6B6357]" style={{ borderTop: "2px solid #6B6357" }} />
             <User size={12} /> Your plan
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-[2px]" style={{ borderTop: "2px dashed #9AA5B1" }} />
+            <span className="w-3 h-[2px]" style={{ borderTop: "2px dashed #6B6357" }} />
             <Sparkles size={12} /> AI-generated
           </div>
           <div className="flex items-center gap-1.5">
@@ -657,26 +657,26 @@ function AddWorkoutModal({ defaultDate, onClose, onCreated }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-[#1F2225] border border-[#2E3236] rounded-t-xl sm:rounded-xl w-full sm:max-w-md p-5"
+        className="bg-[#FFFFFF] border border-[#E2DCD0] rounded-t-xl sm:rounded-2xl w-full sm:max-w-md p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-base font-semibold mb-4">Add workout</h2>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Date</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Type</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Type</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             >
               {WORKOUT_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -686,54 +686,54 @@ function AddWorkoutModal({ defaultDate, onClose, onCreated }) {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Description</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
               placeholder="e.g. 10km easy, conversational pace"
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0] resize-none"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow resize-none"
             />
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="block text-xs text-[#9AA5B1] mb-1">Distance (km, optional)</label>
+              <label className="block text-xs text-[#6B6357] mb-1">Distance (km, optional)</label>
               <input
                 type="number"
                 min="0"
                 step="0.1"
                 value={distanceKm}
                 onChange={(e) => setDistanceKm(e.target.value)}
-                className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+                className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs text-[#9AA5B1] mb-1">Duration (min, optional)</label>
+              <label className="block text-xs text-[#6B6357] mb-1">Duration (min, optional)</label>
               <input
                 type="number"
                 min="0"
                 step="1"
                 value={durationMin}
                 onChange={(e) => setDurationMin(e.target.value)}
-                className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+                className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
               />
             </div>
           </div>
 
-          {error && <p className="text-xs text-[#E8574B]">{error}</p>}
+          {error && <p className="text-xs text-[#D14F3F]">{error}</p>}
 
           <div className="flex gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 text-center text-sm py-2 rounded-md bg-[#2A2E32] hover:bg-[#32373C] transition-colors"
+              className="flex-1 text-center text-sm py-2 rounded-xl bg-[#EFE9DE] hover:bg-[#D9D2C4] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 text-center text-sm py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 text-center text-sm py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {submitting ? "Adding…" : "Add"}
             </button>
@@ -808,29 +808,29 @@ function LogWorkoutModal({ defaultDate, onClose, onLogged }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-[#1F2225] border border-[#2E3236] rounded-t-xl sm:rounded-xl w-full sm:max-w-md p-5"
+        className="bg-[#FFFFFF] border border-[#E2DCD0] rounded-t-xl sm:rounded-2xl w-full sm:max-w-md p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-base font-semibold mb-1">Log workout</h2>
-        <p className="text-xs text-[#6B7280] mb-4">
+        <p className="text-xs text-[#A39C8C] mb-4">
           Logs a completed session and re-checks your upcoming AI-generated plan against it.
         </p>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Date</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Type</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Type</label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             >
               {ACTIVITY_TYPE_OPTIONS.map((t) => (
                 <option key={t} value={t}>
@@ -842,48 +842,48 @@ function LogWorkoutModal({ defaultDate, onClose, onLogged }) {
           <div className="flex gap-3">
             {isDistanceType && (
               <div className="flex-1">
-                <label className="block text-xs text-[#9AA5B1] mb-1">Distance (km)</label>
+                <label className="block text-xs text-[#6B6357] mb-1">Distance (km)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.1"
                   value={distanceKm}
                   onChange={(e) => setDistanceKm(e.target.value)}
-                  className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+                  className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
                 />
               </div>
             )}
             <div className="flex-1">
-              <label className="block text-xs text-[#9AA5B1] mb-1">Duration (min)</label>
+              <label className="block text-xs text-[#6B6357] mb-1">Duration (min)</label>
               <input
                 type="number"
                 min="0"
                 step="1"
                 value={durationMin}
                 onChange={(e) => setDurationMin(e.target.value)}
-                className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+                className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
               />
             </div>
           </div>
           {isDistanceType && (
             <div>
-              <label className="block text-xs text-[#9AA5B1] mb-1">Avg heart rate (optional)</label>
+              <label className="block text-xs text-[#6B6357] mb-1">Avg heart rate (optional)</label>
               <input
                 type="number"
                 min="0"
                 step="1"
                 value={avgHr}
                 onChange={(e) => setAvgHr(e.target.value)}
-                className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+                className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
               />
             </div>
           )}
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Perceived effort (RPE)</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Perceived effort (RPE)</label>
             <select
               value={perceivedEffort}
               onChange={(e) => setPerceivedEffort(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             >
               {Object.entries(RPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -893,7 +893,7 @@ function LogWorkoutModal({ defaultDate, onClose, onLogged }) {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">
+            <label className="block text-xs text-[#6B6357] mb-1">
               Notes (optional) {!isDistanceType && "— sets/reps, drills, intervals, how it felt"}
             </label>
             <textarea
@@ -901,24 +901,24 @@ function LogWorkoutModal({ defaultDate, onClose, onLogged }) {
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder={isDistanceType ? "e.g. 6x400m @ 5K pace, 90s jog recovery" : "e.g. Squats 5x5 @ 80kg, bench 3x8"}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0] resize-none"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow resize-none"
             />
           </div>
 
-          {error && <p className="text-xs text-[#E8574B]">{error}</p>}
+          {error && <p className="text-xs text-[#D14F3F]">{error}</p>}
 
           <div className="flex gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 text-center text-sm py-2 rounded-md bg-[#2A2E32] hover:bg-[#32373C] transition-colors"
+              className="flex-1 text-center text-sm py-2 rounded-xl bg-[#EFE9DE] hover:bg-[#D9D2C4] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 text-center text-sm py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 text-center text-sm py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {submitting ? "Logging…" : "Log"}
             </button>
@@ -1047,14 +1047,14 @@ function HrPaceChart({ heartrate, time, laps }) {
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[9px] uppercase tracking-wide" style={{ color: "#E8574B" }}>
+        <span className="text-[9px] uppercase tracking-wide" style={{ color: "#D14F3F" }}>
           Heart rate
         </span>
-        <span className="text-[9px] uppercase tracking-wide" style={{ color: "#5B9BD5" }}>
+        <span className="text-[9px] uppercase tracking-wide" style={{ color: "#3E7FBD" }}>
           Pace / lap
         </span>
       </div>
-      <div className="h-3 mb-1 text-[9px] text-[#EDEAE3] flex items-center justify-between">
+      <div className="h-3 mb-1 text-[9px] text-[#2B261F] flex items-center justify-between">
         {hoverPoint && <span>{Math.round(heartrate[hoverIndex])} bpm · {formatElapsed(hoverTime)}</span>}
         {hoverLap && <span>Lap {hoverLap.lapIndex} · {formatPace(hoverLap.paceSecPerKm)}/km</span>}
       </div>
@@ -1071,7 +1071,7 @@ function HrPaceChart({ heartrate, time, laps }) {
                 transform: "translateY(-50%)",
                 textAlign: "right",
                 paddingRight: 3,
-                color: "#E8574B",
+                color: "#D14F3F",
               }}
             >
               {Math.round(tickValue(hr.min, hr.max, row.at))}
@@ -1089,7 +1089,7 @@ function HrPaceChart({ heartrate, time, laps }) {
                 transform: "translateY(-50%)",
                 textAlign: "left",
                 paddingLeft: 3,
-                color: "#5B9BD5",
+                color: "#3E7FBD",
               }}
             >
               {formatPace(tickValue(paceMin, paceMax, row.at))}
@@ -1110,7 +1110,7 @@ function HrPaceChart({ heartrate, time, laps }) {
             y1={row.y}
             x2={CHART_WIDTH - AXIS_LABEL_WIDTH_RIGHT}
             y2={row.y}
-            stroke="#2E3236"
+            stroke="#E2DCD0"
             strokeWidth="0.5"
           />
         ))}
@@ -1122,12 +1122,12 @@ function HrPaceChart({ heartrate, time, laps }) {
             width={bar.width.toFixed(1)}
             height={bar.height.toFixed(1)}
             rx="1"
-            fill="#5B9BD5"
+            fill="#3E7FBD"
             opacity={hoverLap === bar ? 0.55 : 0.32}
           />
         ))}
         {hr.pathStrings.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke="#E8574B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path key={i} d={d} fill="none" stroke="#D14F3F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         ))}
         {hoverPoint && (
           <>
@@ -1136,10 +1136,10 @@ function HrPaceChart({ heartrate, time, laps }) {
               y1={CHART_PADDING}
               x2={hoverPoint[0]}
               y2={CHART_HEIGHT - CHART_PADDING}
-              stroke="#3A3F45"
+              stroke="#D9D2C4"
               strokeWidth="1"
             />
-            <circle cx={hoverPoint[0]} cy={hoverPoint[1]} r="2.5" fill="#E8574B" />
+            <circle cx={hoverPoint[0]} cy={hoverPoint[1]} r="2.5" fill="#D14F3F" />
           </>
         )}
         </svg>
@@ -1173,11 +1173,11 @@ function StravaActivityExtras({ activityId }) {
   }, [activityId]);
 
   return (
-    <div className="mt-2 pt-2 border-t border-[#2E3236]">
-      {loadingStreams && <p className="text-[10px] text-[#6B7280]">Loading HR/pace…</p>}
-      {streamsError && <p className="text-[10px] text-[#E8574B]">Couldn't load HR/pace: {streamsError}</p>}
+    <div className="mt-2 pt-2 border-t border-[#E2DCD0]">
+      {loadingStreams && <p className="text-[10px] text-[#A39C8C]">Loading HR/pace…</p>}
+      {streamsError && <p className="text-[10px] text-[#D14F3F]">Couldn't load HR/pace: {streamsError}</p>}
       {streams && (streams.heartrate || streams.laps) && (
-        <div className="flex gap-3 bg-[#1B1D1F] border border-[#2E3236] rounded-md p-2.5">
+        <div className="flex gap-3 bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl p-2.5">
           <HrPaceChart heartrate={streams.heartrate} time={streams.time} laps={streams.laps} />
         </div>
       )}

@@ -38,7 +38,7 @@ export default function PlanPreviewGrid({ workouts, weekFocuses = [] }: { workou
     <div>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {WEEKDAY_LABELS.map((d, i) => (
-          <div key={i} className="text-[9px] text-[#6B7280] text-center">
+          <div key={i} className="text-[9px] text-[#A39C8C] text-center">
             {d}
           </div>
         ))}
@@ -49,7 +49,7 @@ export default function PlanPreviewGrid({ workouts, weekFocuses = [] }: { workou
         return (
           <div key={wi} className="mb-1">
             {focus && (
-              <div className="text-[9px] text-[#7DD3C0] font-medium leading-tight mb-0.5 px-0.5 truncate">{focus}</div>
+              <div className="text-[9px] text-[#2E9C86] font-medium leading-tight mb-0.5 px-0.5 truncate">{focus}</div>
             )}
             <div className="grid grid-cols-7 gap-1">
               {week.map((w, di) => {
@@ -62,10 +62,10 @@ export default function PlanPreviewGrid({ workouts, weekFocuses = [] }: { workou
                     className="rounded px-1 py-1 min-h-[44px]"
                     style={{ backgroundColor: `${style.color}22`, borderLeft: `2px solid ${style.color}` }}
                   >
-                    <div className="text-[9px] text-[#6B7280] leading-tight">{dayNum}</div>
-                    <div className="text-[9px] text-[#EDEAE3] font-medium leading-tight truncate">{style.label}</div>
+                    <div className="text-[9px] text-[#A39C8C] leading-tight">{dayNum}</div>
+                    <div className="text-[9px] text-[#2B261F] font-medium leading-tight truncate">{style.label}</div>
                     {w.targetDistance && (
-                      <div className="text-[9px] text-[#9AA5B1] leading-tight">{(w.targetDistance / 1000).toFixed(1)}km</div>
+                      <div className="text-[9px] text-[#6B6357] leading-tight">{(w.targetDistance / 1000).toFixed(1)}km</div>
                     )}
                   </div>
                 );

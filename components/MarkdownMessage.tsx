@@ -24,7 +24,7 @@ export default function MarkdownMessage({ content }: { content: string }) {
           <code className="bg-black/20 rounded px-1 py-0.5 text-[0.85em] font-mono">{children}</code>
         ),
         pre: ({ children }) => (
-          <pre className="bg-black/20 rounded-md p-2 mb-2 last:mb-0 overflow-x-auto text-[0.85em] font-mono">{children}</pre>
+          <pre className="bg-black/20 rounded-xl p-2 mb-2 last:mb-0 overflow-x-auto text-[0.85em] font-mono">{children}</pre>
         ),
         blockquote: ({ children }) => (
           <blockquote className="border-l-2 border-current/30 pl-2 opacity-80 mb-2 last:mb-0">{children}</blockquote>

@@ -72,18 +72,18 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#16181A] text-[#EDEAE3] font-[system-ui]">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2B261F] font-[system-ui]">
       <div className="max-w-2xl mx-auto px-4 pt-8 pb-28">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280] mb-1">Training goal</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[#A39C8C] mb-1">Training goal</p>
         <h1 className="text-2xl font-semibold tracking-tight mb-6">Goals</h1>
 
         {error && (
-          <p className="mb-4 text-xs text-[#E8574B] border border-[#E8574B]/40 rounded-lg px-4 py-3 bg-[#E8574B]/10">
+          <p className="mb-4 text-xs text-[#D14F3F] border border-[#D14F3F]/40 rounded-2xl px-4 py-3 bg-[#D14F3F]/10">
             {error}
           </p>
         )}
         {message && (
-          <p className="mb-4 text-xs text-[#9AA5B1] bg-[#232628] border border-[#3A3F45] rounded-lg px-4 py-3">
+          <p className="mb-4 text-xs text-[#6B6357] bg-[#F3EFE7] border border-[#D9D2C4] rounded-2xl px-4 py-3">
             {message}
           </p>
         )}
@@ -91,19 +91,19 @@ export default function GoalsPage() {
         {!loading && activeGoals.length > 0 && (
           <div className="mb-6 space-y-2">
             {activeGoals.map((goal) => (
-              <div key={goal.id} className="bg-[#232628] border border-[#3A3F45] rounded-lg px-4 py-4">
+              <div key={goal.id} className="bg-[#F3EFE7] border border-[#D9D2C4] rounded-2xl px-4 py-4">
                 <div className="flex items-start gap-3">
-                  <Target size={18} className="text-[#7DD3C0] mt-0.5 shrink-0" />
+                  <Target size={18} className="text-[#2E9C86] mt-0.5 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#EDEAE3]">{goal.title}</p>
-                    <p className="text-xs text-[#9AA5B1] mt-0.5">
+                    <p className="text-sm font-medium text-[#2B261F]">{goal.title}</p>
+                    <p className="text-xs text-[#6B6357] mt-0.5">
                       Target: {formatDate(goal.targetDate)}
                       {formatTargetMetric(goal.targetMetric) ? ` · ${formatTargetMetric(goal.targetMetric)}` : ""}
                     </p>
                   </div>
                   <button
                     onClick={() => abandonGoal(goal.id)}
-                    className="text-xs px-2.5 py-1.5 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors shrink-0"
+                    className="text-xs px-2.5 py-1.5 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors shrink-0"
                   >
                     Abandon
                   </button>
@@ -133,15 +133,15 @@ export default function GoalsPage() {
 
         {pastGoals.length > 0 && (
           <div className="mt-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#6B7280] mb-3">Past goals</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#A39C8C] mb-3">Past goals</p>
             <div className="space-y-2">
               {pastGoals.map((g) => (
-                <div key={g.id} className="flex items-center justify-between px-4 py-3 rounded-lg border border-[#26292D] bg-[#1B1D1F]">
+                <div key={g.id} className="flex items-center justify-between px-4 py-3 rounded-2xl border border-[#EAE4D9] bg-[#FFFFFF]">
                   <div>
-                    <p className="text-sm text-[#9AA5B1]">{g.title}</p>
-                    <p className="text-xs text-[#6B7280]">{formatDate(g.targetDate)}</p>
+                    <p className="text-sm text-[#6B6357]">{g.title}</p>
+                    <p className="text-xs text-[#A39C8C]">{formatDate(g.targetDate)}</p>
                   </div>
-                  <span className="text-xs text-[#6B7280] capitalize">{g.status}</span>
+                  <span className="text-xs text-[#A39C8C] capitalize">{g.status}</span>
                 </div>
               ))}
             </div>
@@ -204,40 +204,40 @@ function CreateGoalForm({
   }
 
   return (
-    <form onSubmit={submit} className="bg-[#1F2225] border border-[#2E3236] rounded-lg p-5 space-y-3">
+    <form onSubmit={submit} className="bg-[#FFFFFF] border border-[#E2DCD0] rounded-2xl p-5 space-y-3">
       <h2 className="text-sm font-semibold">{hasOtherActiveGoals ? "Add another goal" : "Set a goal"}</h2>
-      <p className="text-xs text-[#6B7280]">
+      <p className="text-xs text-[#A39C8C]">
         Generates a full periodized plan (build → peak → taper) from your recent training and this
         target.
         {hasOtherActiveGoals && " Coordinated with your other active goal(s) so hard days don't stack."}
       </p>
 
       <div>
-        <label className="block text-xs text-[#9AA5B1] mb-1">Title</label>
+        <label className="block text-xs text-[#6B6357] mb-1">Title</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Sub-90 half marathon"
-          className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+          className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
         />
       </div>
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="block text-xs text-[#9AA5B1] mb-1">Target date</label>
+          <label className="block text-xs text-[#6B6357] mb-1">Target date</label>
           <input
             type="date"
             value={targetDate}
             onChange={(e) => setTargetDate(e.target.value)}
-            className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+            className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
           />
         </div>
         <div className="flex-1">
-          <label className="block text-xs text-[#9AA5B1] mb-1">Race distance</label>
+          <label className="block text-xs text-[#6B6357] mb-1">Race distance</label>
           <select
             value={raceDistance}
             onChange={(e) => setRaceDistance(e.target.value)}
-            className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+            className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
           >
             {RACE_DISTANCES.map((d) => (
               <option key={d.value} value={d.value}>
@@ -249,29 +249,29 @@ function CreateGoalForm({
       </div>
 
       <div>
-        <label className="block text-xs text-[#9AA5B1] mb-1">Target time (minutes, optional)</label>
+        <label className="block text-xs text-[#6B6357] mb-1">Target time (minutes, optional)</label>
         <input
           type="number"
           min="0"
           step="1"
           value={targetMinutes}
           onChange={(e) => setTargetMinutes(e.target.value)}
-          className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+          className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
         />
       </div>
 
       <div>
-        <label className="block text-xs text-[#9AA5B1] mb-2">Cross-training (optional)</label>
+        <label className="block text-xs text-[#6B6357] mb-2">Cross-training (optional)</label>
         <div className="flex flex-wrap gap-2">
           {CROSS_TRAINING_OPTIONS.map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => toggleCrossTraining(option)}
-              className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-colors capitalize ${
+              className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl border transition-colors capitalize ${
                 crossTraining.includes(option)
-                  ? "bg-[#7DD3C0] text-[#16181A] border-[#7DD3C0] font-medium"
-                  : "bg-transparent border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32]"
+                  ? "bg-[#5FC2AB] text-[#FAF7F2] border-[#2E9C86] font-medium"
+                  : "bg-transparent border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE]"
               }`}
             >
               {crossTraining.includes(option) && <Check size={12} />}
@@ -281,12 +281,12 @@ function CreateGoalForm({
         </div>
       </div>
 
-      {error && <p className="text-xs text-[#E8574B]">{error}</p>}
+      {error && <p className="text-xs text-[#D14F3F]">{error}</p>}
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full text-center text-sm py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="w-full text-center text-sm py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {submitting ? <Spinner label="Generating plan…" /> : "Create goal & generate plan"}
       </button>
@@ -350,37 +350,37 @@ function MaintenancePlanCard({ onGenerated }: { onGenerated: (message: string) =
   }
 
   return (
-    <div className="mt-4 border border-[#26292D] rounded-lg p-5">
+    <div className="mt-4 border border-[#EAE4D9] rounded-2xl p-5">
       <h2 className="text-sm font-semibold mb-1">No specific goal right now?</h2>
-      <p className="text-xs text-[#6B7280] mb-3">
+      <p className="text-xs text-[#A39C8C] mb-3">
         Generates a rolling 4-week plan that just maintains your current training patterns — no
         build-up or taper, no target date needed.
       </p>
 
       {proposal ? (
         <div>
-          <div className="border border-[#3A3F45] rounded-lg p-3 bg-[#1B1D1F] mb-3">
-            <div className="text-sm text-[#EDEAE3] mb-3">
+          <div className="border border-[#D9D2C4] rounded-2xl p-3 bg-[#FFFFFF] mb-3">
+            <div className="text-sm text-[#2B261F] mb-3">
               <MarkdownMessage content={proposal.message} />
             </div>
-            <p className="text-[10px] uppercase tracking-wide text-[#9AA5B1] mb-2">
+            <p className="text-[10px] uppercase tracking-wide text-[#6B6357] mb-2">
               {proposal.workouts.length} planned workouts
             </p>
             <PlanPreviewGrid workouts={proposal.workouts} weekFocuses={proposal.weekFocuses} />
           </div>
-          {error && <p className="text-xs text-[#E8574B] mb-2">{error}</p>}
+          {error && <p className="text-xs text-[#D14F3F] mb-2">{error}</p>}
           <div className="flex gap-2">
             <button
               onClick={approve}
               disabled={committing}
-              className="flex items-center gap-1 text-sm px-3 py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium disabled:opacity-50"
+              className="flex items-center gap-1 text-sm px-3 py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium disabled:opacity-50"
             >
               {committing ? <Spinner label="Applying…" /> : (<><Check size={14} /> Approve</>)}
             </button>
             <button
               onClick={discard}
               disabled={committing}
-              className="text-sm px-3 py-2 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors disabled:opacity-50"
+              className="text-sm px-3 py-2 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors disabled:opacity-50"
             >
               Discard
             </button>
@@ -389,7 +389,7 @@ function MaintenancePlanCard({ onGenerated }: { onGenerated: (message: string) =
       ) : (
         <>
           <div className="mb-3">
-            <label className="block text-xs text-[#9AA5B1] mb-1">Target weekly mileage, km (optional)</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Target weekly mileage, km (optional)</label>
             <input
               type="number"
               min="0"
@@ -397,11 +397,11 @@ function MaintenancePlanCard({ onGenerated }: { onGenerated: (message: string) =
               value={targetWeeklyMileage}
               onChange={(e) => setTargetWeeklyMileage(e.target.value)}
               placeholder="Defaults to your recent training volume average"
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div className="mb-3">
-            <label className="block text-xs text-[#9AA5B1] mb-1">Runs per week (optional)</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Runs per week (optional)</label>
             <input
               type="number"
               min="0"
@@ -410,21 +410,21 @@ function MaintenancePlanCard({ onGenerated }: { onGenerated: (message: string) =
               value={runsPerWeek}
               onChange={(e) => setRunsPerWeek(e.target.value)}
               placeholder="Defaults to your profile setting, or the plan's judgment"
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div className="mb-3">
-            <label className="block text-xs text-[#9AA5B1] mb-2">Cross-training (optional)</label>
+            <label className="block text-xs text-[#6B6357] mb-2">Cross-training (optional)</label>
             <div className="flex flex-wrap gap-2">
               {CROSS_TRAINING_OPTIONS.map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => toggleCrossTraining(option)}
-                  className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border transition-colors capitalize ${
+                  className={`flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl border transition-colors capitalize ${
                     crossTraining.includes(option)
-                      ? "bg-[#7DD3C0] text-[#16181A] border-[#7DD3C0] font-medium"
-                      : "bg-transparent border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32]"
+                      ? "bg-[#5FC2AB] text-[#FAF7F2] border-[#2E9C86] font-medium"
+                      : "bg-transparent border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE]"
                   }`}
                 >
                   {crossTraining.includes(option) && <Check size={12} />}
@@ -433,11 +433,11 @@ function MaintenancePlanCard({ onGenerated }: { onGenerated: (message: string) =
               ))}
             </div>
           </div>
-          {error && <p className="text-xs text-[#E8574B] mb-2">{error}</p>}
+          {error && <p className="text-xs text-[#D14F3F] mb-2">{error}</p>}
           <button
             onClick={generate}
             disabled={submitting}
-            className="text-sm px-3 py-2 rounded-md bg-transparent border border-[#3A3F45] text-[#9AA5B1] hover:bg-[#2A2E32] transition-colors disabled:opacity-50"
+            className="text-sm px-3 py-2 rounded-xl bg-transparent border border-[#D9D2C4] text-[#6B6357] hover:bg-[#EFE9DE] transition-colors disabled:opacity-50"
           >
             {submitting ? <Spinner label="Generating…" /> : "Generate maintenance plan"}
           </button>

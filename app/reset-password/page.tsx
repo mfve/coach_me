@@ -36,13 +36,13 @@ export default function ResetPasswordPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#16181A] text-[#EDEAE3] font-[system-ui] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#FAF7F2] text-[#2B261F] font-[system-ui] flex items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
           <h1 className="text-xl font-semibold mb-3">Password updated</h1>
-          <p className="text-sm text-[#9AA5B1] mb-6">You can sign in with your new password now.</p>
+          <p className="text-sm text-[#6B6357] mb-6">You can sign in with your new password now.</p>
           <button
             onClick={() => router.push("/login")}
-            className="text-sm px-4 py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium"
+            className="text-sm px-4 py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium"
           >
             Go to sign in
           </button>
@@ -52,37 +52,37 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#16181A] text-[#EDEAE3] font-[system-ui] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2B261F] font-[system-ui] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <h1 className="text-xl font-semibold mb-1 text-center">Reset password</h1>
-        <p className="text-xs text-[#9AA5B1] text-center mb-6">
+        <p className="text-xs text-[#6B6357] text-center mb-6">
           Sets a new password directly on an existing account. Needs the admin token.
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Admin token</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Admin token</label>
             <input
               type="password"
               autoComplete="off"
               required
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">Email</label>
+            <label className="block text-xs text-[#6B6357] mb-1">Email</label>
             <input
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
           </div>
           <div>
-            <label className="block text-xs text-[#9AA5B1] mb-1">New password</label>
+            <label className="block text-xs text-[#6B6357] mb-1">New password</label>
             <input
               type="password"
               autoComplete="new-password"
@@ -90,15 +90,15 @@ export default function ResetPasswordPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#1B1D1F] border border-[#2E3236] rounded-md px-3 py-2 text-sm outline-none focus:border-[#7DD3C0]"
+              className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
             />
-            <p className="text-xs text-[#9AA5B1] mt-1">At least 8 characters.</p>
+            <p className="text-xs text-[#6B6357] mt-1">At least 8 characters.</p>
           </div>
-          {error && <p className="text-xs text-[#E8574B]">{error}</p>}
+          {error && <p className="text-xs text-[#D14F3F]">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center text-sm px-3 py-2 rounded-md bg-[#7DD3C0] text-[#16181A] font-medium disabled:opacity-50"
+            className="w-full flex items-center justify-center text-sm px-3 py-2 rounded-xl bg-[#5FC2AB] text-[#FAF7F2] shadow-md shadow-[#5FC2AB]/25 font-medium disabled:opacity-50"
           >
             {submitting ? <Spinner label="Updating…" /> : "Set new password"}
           </button>
