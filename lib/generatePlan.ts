@@ -254,10 +254,15 @@ export async function commitProposedPlan(
 }
 
 async function requestPlan(prompt: string, label: string): Promise<ProposedPlan> {
+  const t0 = Date.now();
   let response: string;
   try {
     response = await agentQuery({ prompt });
+    console.log(
+      `[plan timing] ${label}: agentQuery took ${Date.now() - t0}ms, prompt ${prompt.length} chars, response ${response.length} chars`
+    );
   } catch (err) {
+    console.log(`[plan timing] ${label}: agentQuery FAILED after ${Date.now() - t0}ms — ${(err as Error).message}`);
     throw new Error(`${label} failed: ${(err as Error).message}`);
   }
 

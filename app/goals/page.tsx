@@ -222,8 +222,8 @@ function CreateGoalForm({
         />
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 min-w-0">
           <label className="block text-xs text-[#6B6357] mb-1">Target date</label>
           <input
             type="date"
@@ -232,7 +232,7 @@ function CreateGoalForm({
             className="w-full bg-[#FFFFFF] border border-[#E2DCD0] rounded-xl px-3 py-2 text-sm outline-none shadow-sm focus:border-[#2E9C86] focus:shadow-md transition-shadow"
           />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <label className="block text-xs text-[#6B6357] mb-1">Race distance</label>
           <select
             value={raceDistance}
