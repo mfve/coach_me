@@ -101,11 +101,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const t0 = Date.now();
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return new Response("Unauthorized", { status: 401 });
-  console.log(`[chat timing] auth: ${Date.now() - t0}ms`);
 
   const { message } = await req.json();
 
@@ -114,14 +112,12 @@ export async function POST(req: Request) {
     orderBy: { createdAt: "desc" },
     take: HISTORY_LIMIT,
   });
-  console.log(`[chat timing] chatMessage query: ${Date.now() - t0}ms`);
   const history = priorMessages
     .reverse()
     .map((m) => `${m.role === "user" ? "User" : "Coach"}: ${m.content}`)
     .join("\n");
 
   const context = await buildUserContext(userId);
-  console.log(`[chat timing] buildUserContext: ${Date.now() - t0}ms`);
   const prompt = `${formatContextForPrompt(context)}\n\n${
     history ? `Conversation so far:\n${history}\n\n` : ""
   }User: ${message}\n\n${PLAN_ACTIONS_INSTRUCTIONS}`;
@@ -129,9 +125,7 @@ export async function POST(req: Request) {
   let rawReply: string;
   try {
     rawReply = await agentQuery({ prompt });
-    console.log(`[chat timing] agentQuery: ${Date.now() - t0}ms`);
   } catch (err) {
-    console.log(`[chat timing] agentQuery FAILED at: ${Date.now() - t0}ms — ${(err as Error).message}`);
     return Response.json(
       { error: `Claude request failed: ${(err as Error).message}` },
       { status: 502 }
