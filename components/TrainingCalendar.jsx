@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight, Sparkles, User, Check, X, AlertCircle, Plus, RefreshCw, CheckCircle2, Link2 } from "lucide-react";
@@ -431,88 +431,92 @@ export default function TrainingCalendar() {
           ))}
         </div>
 
-        {/* Month grid — grouped into week rows so each week can show its focus/theme */}
-        <div className={loading ? "opacity-50" : ""}>
-          {weeks.map((week, wi) => {
-            const firstDate = week.find((d) => d);
-            const focus = firstDate ? focusByMonday[mondayKeyOf(firstDate)] : undefined;
-            return (
-              <div key={wi} className="mb-1.5">
-                {focus && (
-                  <div className="text-[10px] text-[#7DD3C0] font-medium tracking-wide px-1 mb-1 truncate">
-                    {focus}
-                  </div>
-                )}
-                <div className="grid grid-cols-7 gap-1.5">
-                  {week.map((date, i) => {
-                    if (!date) return <div key={i} className="aspect-square" />;
-                    const key = toKey(date);
-            const dayItems = itemsByDate[key] || [];
-            const isToday = key === todayKey;
-
-            const isSelected = key === selectedDateKey;
-
-            return (
-              <div
-                key={i}
-                onClick={() => setSelectedDateKey((prev) => (prev === key ? null : key))}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setSelectedDateKey((prev) => (prev === key ? null : key));
-                  }
-                }}
-                className={`aspect-square rounded-lg border p-1.5 flex flex-col gap-1 overflow-hidden cursor-pointer transition-colors ${
-                  isSelected
-                    ? "border-[#7DD3C0] bg-[#1D2422] ring-1 ring-[#7DD3C0]/50"
-                    : isToday
-                    ? "border-[#7DD3C0]/60 bg-[#1D2422]"
-                    : "border-[#26292D] bg-[#1B1D1F] hover:border-[#3A3F45]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs ${isToday ? "text-[#7DD3C0] font-semibold" : "text-[#6B7280]"}`}>
-                    {date.getDate()}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openQuickAdd(key);
-                    }}
-                    aria-label={key <= todayKey ? `Log a workout on ${key}` : `Plan a workout on ${key}`}
-                    className="flex items-center justify-center w-6 h-6 -mr-1 -mt-1 rounded-full bg-[#2A2E32] text-[#B8C0C8] hover:bg-[#3A3F45] hover:text-[#EDEAE3] active:scale-90 transition-all"
-                  >
-                    <Plus size={14} strokeWidth={2.5} />
-                  </button>
-                </div>
-                <div className="flex flex-col gap-1 overflow-hidden">
-                  {dayItems.slice(0, 2).map((w) => (
+        {/* Month grid — one continuous grid (not per-week grids) so borders form a single flush
+            hairline sheet like a normal calendar, instead of floating cards with gaps. */}
+        <div className={`border border-[#26292D] rounded-lg overflow-hidden ${loading ? "opacity-50" : ""}`}>
+          <div className="grid grid-cols-7">
+            {weeks.map((week, wi) => {
+              const firstDate = week.find((d) => d);
+              const focus = firstDate ? focusByMonday[mondayKeyOf(firstDate)] : undefined;
+              return (
+                <Fragment key={wi}>
+                  {focus && (
                     <div
-                      key={w.id}
-                      className="text-left rounded px-1.5 py-1 text-[10px] leading-tight truncate"
-                      style={{
-                        backgroundColor: `${styleFor(w.type).color}22`,
-                        borderLeft: `2px solid ${styleFor(w.type).color}`,
-                        borderStyle: w.source === "AI_GENERATED" ? "dashed" : "solid",
-                        borderLeftWidth: "3px",
-                      }}
+                      className={`col-span-7 text-[10px] text-[#7DD3C0] font-medium tracking-wide px-2 py-1 bg-[#1D2422] truncate ${
+                        wi > 0 ? "border-t border-[#26292D]" : ""
+                      }`}
                     >
-                      <span className="text-[#EDEAE3] font-medium">{styleFor(w.type).label}</span>
+                      {focus}
                     </div>
-                  ))}
-                  {dayItems.length > 2 && (
-                    <span className="text-[9px] text-[#6B7280] px-1.5">+{dayItems.length - 2} more</span>
                   )}
-                </div>
-              </div>
-            );
+                  {week.map((date, i) => {
+                    if (!date) {
+                      return <div key={i} className="min-h-[78px] border-t border-r border-[#26292D] bg-[#16181A]" />;
+                    }
+                    const key = toKey(date);
+                    const dayItems = itemsByDate[key] || [];
+                    const isToday = key === todayKey;
+                    const isSelected = key === selectedDateKey;
+
+                    return (
+                      <div
+                        key={i}
+                        className={`min-h-[78px] flex flex-col border-t border-r border-[#26292D] transition-colors ${
+                          isSelected ? "bg-[#1D2422] ring-1 ring-inset ring-[#7DD3C0]" : isToday ? "bg-[#1D2422]" : "bg-[#1B1D1F]"
+                        }`}
+                      >
+                        <div
+                          onClick={() => setSelectedDateKey((prev) => (prev === key ? null : key))}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setSelectedDateKey((prev) => (prev === key ? null : key));
+                            }
+                          }}
+                          className="flex-1 p-1.5 flex flex-col gap-1 overflow-hidden cursor-pointer"
+                        >
+                          <span className={`text-xs ${isToday ? "text-[#7DD3C0] font-semibold" : "text-[#6B7280]"}`}>
+                            {date.getDate()}
+                          </span>
+                          <div className="flex flex-col gap-1 overflow-hidden">
+                            {dayItems.slice(0, 2).map((w) => (
+                              <div
+                                key={w.id}
+                                className="text-left rounded px-1.5 py-1 text-[10px] leading-tight truncate"
+                                style={{
+                                  backgroundColor: `${styleFor(w.type).color}22`,
+                                  borderLeft: `2px solid ${styleFor(w.type).color}`,
+                                  borderStyle: w.source === "AI_GENERATED" ? "dashed" : "solid",
+                                  borderLeftWidth: "3px",
+                                }}
+                              >
+                                <span className="text-[#EDEAE3] font-medium">{styleFor(w.type).label}</span>
+                              </div>
+                            ))}
+                            {dayItems.length > 2 && (
+                              <span className="text-[9px] text-[#6B7280] px-1.5">+{dayItems.length - 2} more</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openQuickAdd(key);
+                          }}
+                          aria-label={key <= todayKey ? `Log a workout on ${key}` : `Plan a workout on ${key}`}
+                          className="w-full py-2 flex items-center justify-center text-[#6B7280] border-t border-[#26292D] hover:bg-[#2A2E32] hover:text-[#EDEAE3] active:scale-95 transition-all"
+                        >
+                          <Plus size={16} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    );
                   })}
-                </div>
-              </div>
-            );
-          })}
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* Selected day detail — inline, no popup */}
