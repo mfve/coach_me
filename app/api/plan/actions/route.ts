@@ -1,6 +1,10 @@
 import { auth } from "@/auth";
 import { applyPlanActions, type PlanAction } from "@/lib/planActions";
 
+// Plan generation can take 30-45s (a full multi-week JSON plan from Gemini) — Vercel's
+// default serverless timeout is well under that, so this needs to be raised explicitly.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   const session = await auth();
   const userId = session?.user?.id;

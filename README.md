@@ -54,14 +54,7 @@ Everything in `lib/` and `app/api/` is written against the schema in `prisma/sch
 - `DATABASE_URL` / `DIRECT_URL` — see `.env.local.example`. Locally these can be the same connection string; on Supabase they must differ (pooled vs. direct — see below).
 - `CRON_SECRET` — Vercel Cron sends this automatically as `Authorization: Bearer <value>` once set; without it `/api/cron/*` routes reject all requests.
 - `AUTH_SECRET` — signs Auth.js (NextAuth v5) session cookies/JWTs, see `auth.ts`/`auth.config.ts`. Every page and `/api/*` route (except `/login`, `/signup`, `/api/auth/*`, and `/api/cron/*`) requires a valid session, enforced in `middleware.ts`.
-- `CLAUDE_CODE_OAUTH_TOKEN` — only needed when deploying; see below.
-
-## Critical constraint to preserve
-
-Claude API access uses **OAuth via the Agent SDK, tied to a personal Pro subscription — solo use
-only**. Before any other person uses this app, the LLM calls must switch to a Console API key
-(with a spend cap). Full detail in `docs/plan.md` under "Claude usage boundaries" and in the
-warning comment at the top of `lib/agentClient.ts`.
+- `GEMINI_API_KEY` — free-tier key from [Google AI Studio](https://aistudio.google.com/apikey), used for chat/plan generation. See `lib/agentClient.ts`.
 
 ## Deploying to Vercel
 
@@ -70,19 +63,19 @@ warning comment at the top of `lib/agentClient.ts`.
   needs the direct one — PgBouncer's transaction mode doesn't support the prepared statements
   migrations rely on. `npm run build` already runs `prisma migrate deploy && next build`, so schema
   changes apply automatically on deploy as long as both env vars are set in the Vercel project.
-- **Claude auth:** `lib/agentClient.ts` uses OAuth from `claude setup-token`, which is normally tied
-  to an interactive login. To use it from Vercel's serverless functions, set the token it produces
-  as `CLAUDE_CODE_OAUTH_TOKEN` in the Vercel project's env vars — verify the exact variable name
-  against your installed Agent SDK version's docs before relying on it; this wasn't confirmed
-  against a real deploy.
+- **LLM:** `lib/agentClient.ts` calls the Gemini API directly over HTTP (no SDK, no native
+  binary) — set `GEMINI_API_KEY` in the Vercel project's env vars. An earlier version used the
+  Claude Agent SDK, which shells out to a ~240MB native CLI binary per platform; that's
+  fundamentally incompatible with Vercel's serverless function size limits, which is why chat/plan
+  generation broke in production until this switch.
 - **Cron:** `vercel.json` already defines the daily sync and weekly recommendation crons. They only
   authenticate once `CRON_SECRET` is set as a Vercel env var (Vercel sends it automatically as the
   cron request's `Authorization` header).
 - **Supabase Row Level Security (RLS):** does not apply here and you can skip configuring it. RLS
   gates access through Supabase's client SDK / PostgREST API using the public `anon` key — this app
   never uses that path. Prisma connects straight to Postgres with a server-only connection string,
-  and every read/write already goes through this app's own `/api/*` routes gated by `APP_SECRET`
-  (see `lib/auth.ts`). Enabling RLS wouldn't add protection here, and misconfiguring it (denying the
+  and every read/write already goes through this app's own `/api/*` routes gated by the session
+  cookie (see `middleware.ts`, `auth.ts`). Enabling RLS wouldn't add protection here, and misconfiguring it (denying the
   role Prisma connects as) would break `prisma migrate deploy`. RLS only becomes relevant if this
   app starts querying Supabase directly from the browser with `@supabase/supabase-js` — it doesn't
   today. Access control instead happens in every `/api/*` route via the session cookie

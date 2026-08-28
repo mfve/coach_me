@@ -45,14 +45,15 @@
 - **Race time prediction** — Riegel formula, extrapolates a known effort to other distances.
 - **GAP (Grade-Adjusted Pace)** — normalizes pace for elevation.
 
-## Claude usage boundaries
-- OAuth (Agent SDK) is fine for **solo use only** — chat, weekly feedback, plan adjustments, goal-based
-  plan generation, all while you're the only user.
-- Before adding friends/other users: swap to a Console API key with a spend cap (prepaid credits,
-  auto-reload off, or a monthly limit) — required the moment someone else's request would route
-  through the same credential.
-- Claude is only ever given pre-computed metrics + context; it reasons/writes narrative and proposes
-  actions, never does the arithmetic itself.
+## LLM usage boundaries
+- Chat/plan generation calls the Gemini API directly (`lib/agentClient.ts`), on its free tier —
+  no per-user cost concern the way a metered API key would have. (An earlier version used the
+  Claude Agent SDK via OAuth against a personal Pro subscription, but that shells out to a ~240MB
+  native CLI binary that Vercel's serverless functions can't bundle — replaced for that reason.)
+- The model is only ever given pre-computed metrics + context; it reasons/writes narrative and
+  proposes actions, never does the arithmetic itself.
+- Free-tier rate limits are still a real ceiling if usage grows beyond solo/small-group use —
+  worth revisiting (a paid Gemini tier, or a different provider) if that happens.
 
 ## Data model updates (v2)
 

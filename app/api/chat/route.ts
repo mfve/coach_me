@@ -6,6 +6,10 @@ import { buildGoalPlanInput, type PlanAction } from "@/lib/planActions";
 import { proposeMaintenancePlan, proposeInitialPlan, MAINTENANCE_WEEKS_AHEAD } from "@/lib/generatePlan";
 import { computeTrainingSnapshot } from "@/lib/trainingSnapshot";
 
+// Plan generation can take 30-45s (a full multi-week JSON plan from Gemini) — Vercel's
+// default serverless timeout is well under that, so this needs to be raised explicitly.
+export const maxDuration = 60;
+
 const PLAN_ACTIONS_INSTRUCTIONS = `
 If — and only if — the user is asking you to change their training plan (reschedule or swap a
 specific upcoming workout, adjust its distance/duration/description, add a one-off session,

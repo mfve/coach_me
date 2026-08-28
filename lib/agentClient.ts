@@ -1,25 +1,30 @@
-import { query } from "@anthropic-ai/claude-agent-sdk";
+// Plain HTTP calls to the Gemini API — no SDK, no native binary. The Agent SDK (Claude Code's
+// CLI wrapped as a library) shells out to a ~240MB per-platform binary, which Vercel's
+// serverless functions can't bundle (way past their size limits) — this replaces it with the
+// same single-turn text/JSON generation over a lightweight REST call instead.
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
-// Every call here is single-turn text/JSON generation with no tool use — Haiku is more than
-// capable of it at a fraction of Sonnet/Opus cost. Override with AGENT_MODEL if a specific
-// call ever needs more reasoning headroom.
-const DEFAULT_MODEL = process.env.AGENT_MODEL || "haiku";
+// Fast, free-tier-eligible, and more than capable for single-turn text/JSON generation with no
+// tool use. Override with AGENT_MODEL if a specific call ever needs more reasoning headroom.
+const DEFAULT_MODEL = process.env.AGENT_MODEL || "gemini-3.6-flash";
 
 export async function agentQuery({ prompt, model }: { prompt: string; model?: string }): Promise<string> {
-  let fullText = "";
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
-  for await (const msg of query({
-    prompt,
-    options: { allowedTools: [], model: model ?? DEFAULT_MODEL },
-  })) {
-    if (msg.type === "assistant") {
-      for (const block of msg.message.content) {
-        if (block.type === "text") fullText += block.text;
-      }
-    }
+  const res = await fetch(`${GEMINI_API_BASE}/${model ?? DEFAULT_MODEL}:generateContent?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Gemini request failed (${res.status}): ${await res.text()}`);
   }
 
-  return fullText;
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  return parts.map((p: any) => p.text ?? "").join("");
 }
 
 // Callers ask for "JSON only, no other text" but the model still wraps it in a
