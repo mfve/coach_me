@@ -15,7 +15,14 @@ export async function agentQuery({ prompt, model }: { prompt: string; model?: st
   const res = await fetch(`${GEMINI_API_BASE}/${model ?? DEFAULT_MODEL}:generateContent?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      // Every call here is prescriptive text/JSON generation from an already-detailed prompt —
+      // no open-ended reasoning needed. Without this, the model's default "thinking" mode adds
+      // 20-40s+ of internal reasoning per call (confirmed via timing logs), which is what was
+      // causing production timeouts even on trivial one-line chat replies.
+      generationConfig: { thinkingConfig: { thinkingLevel: "LOW" } },
+    }),
   });
 
   if (!res.ok) {
